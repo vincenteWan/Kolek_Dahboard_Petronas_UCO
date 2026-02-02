@@ -1,0 +1,20 @@
+{
+  "name": "kolek-dashboard",
+  "version": "1.0.0",
+  "description": "Kolek Dashboard with CSV to Database integration",
+  "main": "server.js",
+  "scripts": {
+    "server": "node server.js",
+    "start": "node server.js",
+    "load-csv": "node loadCSV_fixed.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "mysql2": "^3.6.0",
+    "csv-parser": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

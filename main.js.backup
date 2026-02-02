@@ -1,0 +1,2421 @@
+// ==================== LOGIN PAGE FUNCTIONS ====================
+// Toggle password visibility
+function togglePassword() {
+    const passwordInput = document.getElementById('password');
+    const toggleIcon = document.querySelector('.password-toggle');
+    
+    if (passwordInput && toggleIcon) {
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.textContent = '🙈';
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.textContent = '👁️';
+        }
+    }
+}
+// Handle login form submission
+function handleLoginSubmit() {
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const adminId = document.getElementById('adminId').value;
+            const password = document.getElementById('password').value;
+            
+            console.log('Login attempt:', { adminId, password });
+            // Use mock API to "login" then set client-side auth token
+            window.dashboardAPI.login(adminId, password).then(resp => {
+                if (resp && resp.success) {
+                    // store a simple flag and adminId for front-end-only session
+                    localStorage.setItem('kolek_auth', '1');
+                    localStorage.setItem('kolek_admin', adminId);
+                    window.location.href = 'dashboard.html';
+                } else {
+                    alert('Login failed: ' + (resp.message || 'Invalid credentials'));
+                }
+            }).catch(err => {
+                console.error('Login error', err);
+                alert('Login error (see console)');
+            });
+        });
+    }
+}
+// ==================== DASHBOARD PAGE FUNCTIONS ====================
+// Initialize the dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    const isDashboard = document.querySelector('.dashboard-container');
+    const isLogin = document.querySelector('.container:not(.dashboard-container)');
+    // If we're on the dashboard page, ensure user is authenticated
+    if (isDashboard) {
+        const auth = localStorage.getItem('kolek_auth');
+        if (!auth) {
+            // not authenticated -> redirect to login
+            window.location.href = 'index.html';
+            return;
+        }
+        // Initialize dashboard
+        initializeDashboard();
+        setupEventListeners();
+        updateDate();
+    } else if (isLogin) {
+        handleLoginSubmit();
+    }
+});
+// Initialize dashboard charts
+function initializeDashboard() {
+    createUCOTrendChart();
+    createAreaChart();
+    setInterval(updateDate, 60000); // Update date every minute
+    // Load household data for leaderboard on dashboard
+    loadHouseholdFromCSV().catch(err => console.error('Failed to load household data for dashboard:', err));
+    // Load campaign data for awareness overview
+    loadCampaignFromCSV().catch(err => console.error('Failed to load campaign data for dashboard:', err));
+    // Load household data for leaderboard on dashboard
+    loadHouseholdFromCSV().catch(err => console.error('Failed to load household data for dashboard:', err));
+    // Load campaign data for awareness overview
+    loadCampaignFromCSV().catch(err => console.error('Failed to load campaign data for dashboard:', err));
+}
+// Setup event listeners
+function setupEventListeners() {
+    // Navigation items
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        item.addEventListener('click', handleNavigation);
+    });
+    // Refresh button
+    const refreshBtn = document.getElementById('refresh-btn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', handleRefresh);
+    }
+    // Export PDF button
+    const exportBtn = document.getElementById('export-btn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', handleExportPDF);
+    }
+    // Year select dropdown
+    const yearSelect = document.getElementById('year-select');
+    if (yearSelect) {
+        yearSelect.addEventListener('change', handleYearChange);
+    }
+    // Month filter dropdown
+    const monthFilter = document.getElementById('month-filter');
+    if (monthFilter) {
+        monthFilter.addEventListener('change', handleMonthFilter);
+    }
+    // Header avatar -> open profile page
+    const headerAvatar = document.getElementById('header-user-avatar');
+    if (headerAvatar) headerAvatar.addEventListener('click', function(e){ e.preventDefault(); openProfilePage(); });
+}
+// Handle navigation
+function handleNavigation(event) {
+    event.preventDefault();
+    
+    // Remove active class from all nav items
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Add active class to clicked item
+    this.classList.add('active');
+    
+    // Get the page name
+    const page = this.getAttribute('data-page');
+    
+    // Hide all content sections
+    document.querySelectorAll('.content').forEach(content => {
+        content.style.display = 'none';
+    });
+    
+    // Show selected content
+    const contentId = `${page}-content`;
+    const content = document.getElementById(contentId);
+    if (content) {
+        content.style.display = 'block';
+    }
+    // update header title to the clicked item's text
+    try {
+        const title = this.textContent.replace(/\s+/g, ' ').trim();
+        const headerTitle = document.querySelector('.header-left h1');
+        if (headerTitle) headerTitle.textContent = title;
+    } catch(e){}
+}
+// Open profile page programmatically (used by header avatar click)
+function openProfilePage(){
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    document.querySelectorAll('.content').forEach(content => content.style.display = 'none');
+    const profile = document.getElementById('profile-content');
+    if (profile) profile.style.display = 'block';
+    const headerTitle = document.querySelector('.header-left h1');
+    if (headerTitle) headerTitle.textContent = 'Profile';
+}
+// Update current date
+function updateDate() {
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    const today = new Date().toLocaleDateString('en-US', options);
+    const dateDisplay = document.getElementById('current-date');
+    if (dateDisplay) {
+        dateDisplay.textContent = `Today, ${today}`;
+    }
+}
+// Create UCO Collection Trend Chart
+function createUCOTrendChart() {
+    const canvas = document.getElementById('ucoChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    const data = {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct'],
+        datasets: [{
+            label: '2025',
+            data: [65, 70, 75, 80, 85, 80, 65.7, 75, 60, 55],
+            borderColor: '#4CAF50',
+            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#4CAF50',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            pointHoverBackgroundColor: '#4CAF50',
+            pointHoverBorderColor: '#fff',
+            pointHoverBorderWidth: 2
+        }]
+    };
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'bottom',
+                labels: {
+                    color: '#666',
+                    font: {
+                        size: 12
+                    },
+                    padding: 15,
+                    usePointStyle: true
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                borderColor: '#4CAF50',
+                borderWidth: 1,
+                padding: 10,
+                displayColors: false,
+                callbacks: {
+                    label: function(context) {
+                        return context.parsed.y.toFixed(1) + ' litres';
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                    color: '#666',
+                    font: {
+                        size: 12
+                    }
+                },
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.05)',
+                    drawBorder: false
+                }
+            },
+            x: {
+                ticks: {
+                    color: '#666',
+                    font: {
+                        size: 12
+                    }
+                },
+                grid: {
+                    display: false,
+                    drawBorder: false
+                }
+            }
+        }
+    };
+    window.ucoChart = new Chart(ctx, {
+        type: 'line',
+        data: data,
+        options: options
+    });
+}
+// Create Area Distribution Pie Chart
+function createAreaChart() {
+    const canvas = document.getElementById('areaChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    const data = {
+        labels: ['Kuala Lumpur', 'Ampang', 'Shah Alam', 'Cheras'],
+        datasets: [{
+            data: [35, 25, 25, 15],
+            backgroundColor: [
+                '#4CAF50',
+                '#7CB342',
+                '#9CCC65',
+                '#C5E1A5'
+            ],
+            borderColor: '#fff',
+            borderWidth: 2
+        }]
+    };
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                borderColor: '#4CAF50',
+                borderWidth: 1,
+                padding: 10,
+                callbacks: {
+                    label: function(context) {
+                        return context.label + ': ' + context.parsed + '%';
+                    }
+                }
+            }
+        }
+    };
+    window.areaChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: data,
+        options: options
+    });
+}
+// Handle refresh button
+function handleRefresh() {
+    const btn = document.getElementById('refresh-btn');
+    if (!btn) return;
+    btn.style.transform = 'rotate(0deg)';
+    btn.style.transition = 'transform 0.6s ease';
+    
+    setTimeout(() => {
+        btn.style.transform = 'rotate(360deg)';
+    }, 10);
+    
+    // Simulate data refresh
+    setTimeout(() => {
+        console.log('Dashboard refreshed');
+        // Update charts with new data
+        if (window.ucoChart) {
+            window.ucoChart.data.datasets[0].data = [
+                65, 70, 75, 80, 85, 80, 68, 78, 62, 57
+            ];
+            window.ucoChart.update();
+        }
+    }, 300);
+}
+// Handle export to PDF
+function handleExportPDF() {
+    console.log('Exporting dashboard to PDF...');
+    alert('PDF export functionality will be implemented with backend');
+}
+// Handle year change
+function handleYearChange(event) {
+    const year = event.target.value;
+    console.log('Year selected:', year);
+    
+    // Update chart with new year data
+    if (window.ucoChart) {
+        // Simulate different data for different years
+        const yearData = {
+            2025: [65, 70, 75, 80, 85, 80, 65.7, 75, 60, 55],
+            2024: [45, 50, 55, 60, 65, 70, 75, 70, 65, 60],
+            2023: [30, 35, 40, 45, 50, 55, 60, 55, 50, 45]
+        };
+        
+        window.ucoChart.data.datasets[0].data = yearData[year] || yearData[2025];
+        window.ucoChart.update();
+    }
+}
+// Handle month filter
+function handleMonthFilter(event) {
+    const filter = event.target.value;
+    console.log('Month filter selected:', filter);
+    // Filter table data based on selection
+    // TODO: Connect to backend for filtered data
+}
+// ==================== API FUNCTIONS (For Backend Integration) ====================
+// Mock data API functions (to be replaced with actual backend calls)
+window.dashboardAPI = {
+    // Get KPI data
+    getKPIData: async function() {
+        return {
+            ucoCollected: 1290,
+            co2Saved: 850,
+            routesCreated: 50,
+            households: 120
+        };
+    },
+    // Get chart data
+    getChartData: async function(year) {
+        return {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct'],
+            data: [65, 70, 75, 80, 85, 80, 65.7, 75, 60, 55]
+        };
+    },
+    // Get leaderboard data
+    getLeaderboard: async function() {
+        return [
+            { rank: 1, householdId: '#H-100', points: 20630 },
+            { rank: 2, householdId: '#H-095', points: 16451 },
+            { rank: 3, householdId: '#H-098', points: 12300 },
+            { rank: 4, householdId: '#H-098', points: 11750 },
+            { rank: 5, householdId: '#H-094', points: 10370 }
+        ];
+    },
+    // Get awareness campaigns
+    getAwarenessData: async function(filter = 'this-month') {
+        return [
+            { id: '#CC-005', name: 'UCO Challenge', views: 85, watchTime: '32 seconds', clickRate: '20%', engagement: 85 },
+            { id: '#CC-004', name: 'Go Green Tips', views: 90, watchTime: '35 seconds', clickRate: '12%', engagement: 72 },
+            { id: '#CC-003', name: 'Reuse Oil Tips', views: 87, watchTime: '40 seconds', clickRate: '8%', engagement: 65 },
+            { id: '#CC-002', name: 'Oil Disposal Tips', views: 98, watchTime: '43 seconds', clickRate: '10%', engagement: 70 },
+            { id: '#CC-001', name: 'Kolek Rewards', views: 112, watchTime: '21 seconds', clickRate: '18%', engagement: 82 }
+        ];
+    },
+    // Get area distribution
+    getAreaDistribution: async function() {
+        return [
+            { area: 'Kuala Lumpur', percentage: 35 },
+            { area: 'Ampang', percentage: 25 },
+            { area: 'Shah Alam', percentage: 25 },
+            { area: 'Cheras', percentage: 15 }
+        ];
+    },
+    // Login function
+    login: async function(adminId, password) {
+        // TODO: Connect to backend
+        console.log('Login attempt:', { adminId, password });
+        return { success: true, message: 'Login successful' };
+    },
+    // Get stations data from backend
+    getStations: async function() {
+        // TODO: Replace with actual backend API call
+        // Example: return fetch('/api/stations').then(r => r.json())
+        console.log('Fetching stations from backend...');
+        return {
+            success: true,
+            data: [
+                { id: '#S-048', name: 'PETRONAS Temasya Federal Highway', fill: 42, purity: 98, status: 'good' },
+                { id: '#S-047', name: 'Petronas Batu 3 Federal Highway', fill: 83.2, purity: 78, status: 'warning' },
+                { id: '#S-046', name: 'PETRONAS Temasya Federal Highway', fill: 98, purity: 67, status: 'danger' },
+                { id: '#S-045', name: 'PETRONAS Mutiara Damansara', fill: 21.5, purity: 97, status: 'good' },
+                { id: '#S-044', name: 'PETRONAS Glenmarie TTDI Jaya', fill: 32, purity: 86, status: 'good' },
+                { id: '#S-043', name: 'Petronas Cochrane Perkasa', fill: 86, purity: 91, status: 'warning' },
+                { id: '#S-042', name: 'Petronas SS4B KELANA JAYA', fill: 95, purity: 89, status: 'danger' },
+                { id: '#S-041', name: 'Petronas Kota Damansara 1', fill: 43.3, purity: 75, status: 'good' },
+                { id: '#S-040', name: 'Petronas Bandar Puteri Puchong', fill: 41.6, purity: 65, status: 'good' },
+                { id: '#S-039', name: 'PETRONAS Ara Damansara', fill: 35.1, purity: 45, status: 'good' }
+            ]
+        };
+    },
+    // Get available collectors from backend
+    getCollectors: async function() {
+        // TODO: Replace with actual backend API call
+        // Example: return fetch('/api/collectors?status=available').then(r => r.json())
+        console.log('Fetching available collectors from backend...');
+        return {
+            success: true,
+            data: [
+                { id: 'C001', name: 'Ahmad Bin Said', phone: '+60-17-123-4567', status: 'available' },
+                { id: 'C002', name: 'Fatimah Binti Hasan', phone: '+60-16-987-6543', status: 'available' },
+                { id: 'C003', name: 'Muhammad Ali', phone: '+60-18-555-1234', status: 'available' },
+                { id: 'C004', name: 'Siti Nurhaliza', phone: '+60-19-444-5678', status: 'available' },
+                { id: 'C005', name: 'Chen Wei Ming', phone: '+60-17-222-8901', status: 'on-trip' }
+            ]
+        };
+    },
+    // Assign collector to station
+    assignCollector: async function(stationId, collectorId) {
+        // TODO: Replace with actual backend API call
+        // Example: return fetch('/api/assignments', { method: 'POST', body: JSON.stringify({stationId, collectorId}) }).then(r => r.json())
+        console.log('Assigning collector to station:', { stationId, collectorId });
+        return {
+            success: true,
+            message: 'Collector assigned successfully',
+            assignmentId: 'ASS-' + Date.now()
+        };
+    },
+    // Search stations
+    searchStations: async function(query) {
+        // TODO: Replace with actual backend API call
+        // Example: return fetch(`/api/stations/search?q=${query}`).then(r => r.json())
+        console.log('Searching stations:', { query });
+        return {
+            success: true,
+            data: []
+        };
+    },
+    // Export stations data
+    exportStations: async function(filters = {}) {
+        // TODO: Replace with actual backend API call for CSV generation
+        // Example: return fetch('/api/stations/export', { method: 'POST', body: JSON.stringify(filters) }).then(r => r.blob())
+        console.log('Exporting stations with filters:', filters);
+        return {
+            success: true,
+            message: 'Export generated successfully'
+        };
+    }
+    ,
+    // Export households data (mock)
+    exportHouseholds: async function(filters = {}) {
+        // TODO: Replace with actual backend API call for PDF/CSV generation
+        console.log('Exporting households with filters:', filters);
+        return { success: true, message: 'Household export generation started' };
+    }
+    ,
+    // Export collectors data (mock)
+    exportCollectors: async function(filters = {}) {
+        console.log('Exporting collectors with filters:', filters);
+        return { success: true, message: 'Collectors export generation started' };
+    }
+    ,
+    // Export applicants data (mock)
+    exportApplicants: async function(filters = {}) {
+        console.log('Exporting applicants with filters:', filters);
+        return { success: true, message: 'Applicants export generation started' };
+    }
+    ,
+    // Export reports data (mock)
+    exportReports: async function(filters = {}) {
+        console.log('Exporting reports with filters:', filters);
+        return { success: true, message: 'Reports export generation started' };
+    }
+    ,
+    // Export collections (mock)
+    exportCollections: async function(filters = {}) {
+        console.log('Exporting collections with filters:', filters);
+        return { success: true, message: 'Collections export generation started' };
+    }
+};
+// Export API for backend integration
+console.log('Application loaded. API available at window.dashboardAPI');
+/* ==================== STATION PAGE JS: CLIENT-SIDE SEARCH + PAGINATION + COLLECTOR ASSIGNMENT ==================== */
+(function(){
+    const perPage = 10;
+    let stationData = [];
+    let filteredData = [];
+    let currentPage = 1;
+    let selectedStationForAssignment = null;
+    let selectedCollector = null;
+    function initStations() {
+        // Load stations from CSV
+        loadStationFromCSV().then(stations => {
+            stationData = stations;
+            filteredData = stationData.slice();
+            currentPage = 1;
+            renderStationTable();
+            attachControls();
+            updateStationKPI(stations.length);
+        }).catch(err => {
+            console.error('Error loading stations:', err);
+        });
+    }
+    function renderStationTable(page = currentPage) {
+        const tbody = document.querySelector('#station-table tbody');
+        const entriesInfo = document.getElementById('station-entries-info');
+        
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        const data = filteredData;
+        const total = data.length;
+        const totalPages = Math.max(1, Math.ceil(total / perPage));
+        
+        if (page > totalPages) page = totalPages;
+        currentPage = page;
+        
+        const start = (page - 1) * perPage;
+        const end = Math.min(start + perPage, total);
+        for (let i = start; i < end; i++) {
+            const r = data[i];
+            const tr = document.createElement('tr');
+            let actionContent = '';
+            // If station is full (danger), show an '[Empty bin]' action highlighted in red (design-only)
+            if (r.status === 'danger') {
+                actionContent = `<a href="#" class="empty-bin-link danger" data-station-id="${r.id}" data-station-name="${escapeAttr(r.name)}" data-fill="${r.fill}"><i class="fas fa-trash-alt"></i> [Empty bin]</a>`;
+            } else {
+                // Not full - show a subtle '[Empty bin]' action
+                actionContent = `<a href="#" class="empty-bin-link" data-station-id="${r.id}" data-station-name="${escapeAttr(r.name)}" data-fill="${r.fill}"><i class="fas fa-trash-alt"></i> [Empty bin]</a>`;
+            }
+            tr.innerHTML = `
+                <td>${escapeHtml(r.id)}</td>
+                <td>${escapeHtml(r.name)}</td>
+                <td class="map-col"><a href="#" class="view-map">View map <i class="fas fa-location-arrow"></i></a></td>
+                <td>${r.fill}%</td>
+                <td>${r.purity}%</td>
+                <td class="status ${r.status}">${statusText(r.status)}</td>
+                <td class="actions">
+                    ${actionContent}
+                </td>
+            `;
+            tbody.appendChild(tr);
+        }
+        if (entriesInfo) {
+            entriesInfo.textContent = `Showing ${total === 0 ? 0 : start + 1} to ${total === 0 ? 0 : end} of ${total} samples`;
+        }
+        
+        renderPagination(totalPages);
+        attachRowHandlers();
+    }
+    function renderPagination(totalPages) {
+        const container = document.getElementById('station-pagination');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        const prev = pageBtn('prev', 'Prev', currentPage > 1, () => {
+            if (currentPage > 1) renderStationTable(currentPage - 1);
+        });
+        container.appendChild(prev);
+        
+        for (let p = 1; p <= totalPages; p++) {
+            const btn = pageBtn(p, String(p), true, () => renderStationTable(p));
+            if (p === currentPage) btn.classList.add('active');
+            container.appendChild(btn);
+        }
+        
+        const next = pageBtn('next', 'Next', currentPage < totalPages, () => {
+            if (currentPage < totalPages) renderStationTable(currentPage + 1);
+        });
+        container.appendChild(next);
+    }
+    function pageBtn(key, label, enabled = true, onClick = () => {}) {
+        const b = document.createElement('button');
+        b.className = 'page-btn';
+        b.dataset.page = key;
+        b.textContent = label;
+        if (!enabled) {
+            b.disabled = true;
+            b.style.opacity = 0.6;
+        }
+        b.addEventListener('click', onClick);
+        return b;
+    }
+    function attachControls() {
+        const search = document.getElementById('station-search');
+        const exportBtn = document.getElementById('station-export');
+        if (search) {
+            search.addEventListener('input', function(e) {
+                const q = this.value.trim().toLowerCase();
+                filteredData = stationData.filter(s => {
+                    return s.id.toLowerCase().includes(q) || 
+                           s.name.toLowerCase().includes(q) || 
+                           String(s.fill).includes(q) || 
+                           String(s.purity).includes(q);
+                });
+                currentPage = 1;
+                renderStationTable(1);
+            });
+        }
+        if (exportBtn) {
+            exportBtn.addEventListener('click', function() {
+                // Call backend API to export stations data
+                window.dashboardAPI.exportStations({ filteredIds: filteredData.map(s => s.id) }).then(resp => {
+                    if (resp && resp.success) {
+                        console.log('Export successful:', resp);
+                        // For now, do client-side CSV generation as fallback
+                        const rows = filteredData.map(r => 
+                            [r.id, r.name, r.fill + '%', r.purity + '%', statusText(r.status)].join(',')
+                        ).join('\n');
+                        const csv = 'Station ID,Station Name,Fill Level,Purity Level,Status\n' + rows;
+                        const blob = new Blob([csv], { type: 'text/csv' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'stations_export.csv';
+                        a.click();
+                        URL.revokeObjectURL(url);
+                    } else {
+                        console.error('Export failed:', resp);
+                    }
+                }).catch(err => {
+                    console.error('Export error:', err);
+                });
+            });
+        }
+    }
+    function attachRowHandlers() {
+        const assignBtns = document.querySelectorAll('.btn-small[data-assign-id]');
+        assignBtns.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const stationId = this.dataset.assignId;
+                const stationName = this.dataset.assignName;
+                const fillLevel = this.dataset.assignFill;
+                openCollectorModal(stationId, stationName, fillLevel);
+            });
+        });
+        const mapLinks = document.querySelectorAll('.view-map');
+        mapLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                alert('Map feature coming soon!');
+            });
+        });
+        const emptyLinks = document.querySelectorAll('.empty-bin-link');
+        emptyLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                // Open the Pending Collection modal (matches screenshot)
+                const stationId = this.dataset.stationId;
+                const stationName = this.dataset.stationName || '';
+                const fill = this.dataset.fill || '';
+                openPendingCollectionModal(stationId, stationName, fill);
+            });
+        });
+    }
+    function openCollectorModal(stationId, stationName, fillLevel) {
+        selectedStationForAssignment = { id: stationId, name: stationName, fill: fillLevel };
+        selectedCollector = null;
+        const modal = document.getElementById('collector-modal');
+        const stationNameEl = document.getElementById('modal-station-name');
+        const stationIdEl = document.getElementById('modal-station-id');
+        const fillLevelEl = document.getElementById('modal-fill-level');
+        const collectorsList = document.getElementById('collectors-list');
+        if (!modal) return;
+        // Update modal info
+        if (stationNameEl) stationNameEl.textContent = escapeHtml(stationName);
+        if (stationIdEl) stationIdEl.textContent = escapeHtml(stationId);
+        if (fillLevelEl) fillLevelEl.textContent = fillLevel + '%';
+        // Fetch available collectors from backend
+        window.dashboardAPI.getCollectors().then(resp => {
+            if (resp && resp.success && resp.data && collectorsList) {
+                collectorsList.innerHTML = '';
+                const collectors = resp.data;
+                collectors.forEach((col, idx) => {
+                    const label = document.createElement('label');
+                    label.className = 'collector-option';
+                    
+                    // Generate avatar with initials
+                    const namesParts = col.name.split(' ');
+                    const initials = (namesParts[0]?.charAt(0) + (namesParts[namesParts.length - 1]?.charAt(0) || '')).toUpperCase();
+                    const colors = ['#4CAF50', '#66BB6A', '#81C784', '#A5D6A7', '#C8E6C9'];
+                    const avatarColor = colors[idx % colors.length];
+                    
+                    label.innerHTML = `
+                        <input type="radio" name="collector" value="${col.id}" ${idx === 0 ? 'checked' : ''}>
+                        <div class="collector-avatar" style="background: linear-gradient(135deg, ${avatarColor}, ${avatarColor}88);">${initials}</div>
+                        <div class="collector-info">
+                            <div class="collector-name">${escapeHtml(col.name)}</div>
+                            <div class="collector-details">${escapeHtml(col.phone)} • ${col.status === 'available' ? '✓ Available' : '⏳ On Trip'}</div>
+                        </div>
+                    `;
+                    label.addEventListener('change', function() {
+                        if (this.querySelector('input:checked')) {
+                            document.querySelectorAll('.collector-option').forEach(opt => opt.classList.remove('selected'));
+                            this.classList.add('selected');
+                            selectedCollector = col;
+                        }
+                    });
+                    collectorsList.appendChild(label);
+                });
+                // Select first by default
+                if (collectors.length > 0) {
+                    document.querySelector('.collector-option').classList.add('selected');
+                    selectedCollector = collectors[0];
+                }
+            } else {
+                console.error('Failed to load collectors:', resp);
+            }
+        }).catch(err => {
+            console.error('Error loading collectors:', err);
+        });
+        // Show modal
+        modal.classList.add('show');
+    }
+    function closeCollectorModal() {
+        const modal = document.getElementById('collector-modal');
+        if (modal) {
+            modal.classList.remove('show');
+        }
+        selectedStationForAssignment = null;
+        selectedCollector = null;
+    }
+    function assignCollector() {
+        if (!selectedStationForAssignment || !selectedCollector) {
+            alert('Please select a collector');
+            return;
+        }
+        // Call backend API to assign collector
+        window.dashboardAPI.assignCollector(
+            selectedStationForAssignment.id,
+            selectedCollector.id
+        ).then(resp => {
+            if (resp && resp.success) {
+                console.log('Assignment successful:', resp);
+                alert(`Collector ${selectedCollector.name} has been assigned to ${selectedStationForAssignment.name}`);
+                closeCollectorModal();
+                // Refresh station table to reflect changes
+                renderStationTable(currentPage);
+            } else {
+                console.error('Assignment failed:', resp);
+                alert('Failed to assign collector: ' + (resp?.message || 'Unknown error'));
+            }
+        }).catch(err => {
+            console.error('Assignment error:', err);
+            alert('Error assigning collector (see console)');
+        });
+    }
+    // Initialize when DOM ready
+    document.addEventListener('DOMContentLoaded', function() {
+        if (document.getElementById('station-content')) {
+            initStations();
+        }
+        // Collector page interactions: load collectors from CSV then setup UI
+        if (document.getElementById('collector-content')) {
+            loadCollectorFromCSV()
+                .then(() => { setupCollectorInteractions(); setupCollectorPagination(); })
+                .catch(err => {
+                    console.error('Collector load error', err);
+                    setupCollectorInteractions();
+                });
+        }
+        if (document.getElementById('collection-content')) {
+            setupCollectionInteractions();
+        }
+        if (document.getElementById('household-content')) {
+            // Load household data from CSV file, then setup interactions
+            loadHouseholdFromCSV().then(() => { setupHouseholdInteractions(); setupHouseholdPagination(); });
+        }
+        if (document.getElementById('applicant-content')) {
+            loadApplicationFromCSV()
+                .then(() => setupApplicantInteractions())
+                .catch(err => {
+                    console.error('Application load error', err);
+                    setupApplicantInteractions();
+                });
+        }
+        if (document.getElementById('report-content')) {
+            setupReportInteractions();
+        }
+        if (document.getElementById('profile-content')) {
+            setupProfileInteractions();
+        }
+        if (document.getElementById('ai-assist-content')) {
+            setupAIAssist();
+            // show admin name if present
+            try { const admin = localStorage.getItem('kolek_admin'); if (admin) { const el = document.querySelector('.ai-name'); if (el) el.textContent = admin; } } catch(e){}
+        }
+        // Modal controls
+        const modalCloseBtn = document.getElementById('modal-close');
+        const modalCancelBtn = document.getElementById('modal-cancel');
+        const modalAssignBtn = document.getElementById('modal-assign');
+        if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeCollectorModal);
+        if (modalCancelBtn) modalCancelBtn.addEventListener('click', closeCollectorModal);
+        if (modalAssignBtn) modalAssignBtn.addEventListener('click', assignCollector);
+        // Close modal on background click
+        const modal = document.getElementById('collector-modal');
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeCollectorModal();
+                }
+            });
+        }
+        // Pending Collection Modal controls
+        const pendingCloseBtn = document.getElementById('pending-collection-close');
+        const pendingDoneBtn = document.getElementById('pending-done');
+        if (pendingCloseBtn) pendingCloseBtn.addEventListener('click', closePendingCollectionModal);
+        if (pendingDoneBtn) pendingDoneBtn.addEventListener('click', closePendingCollectionModal);
+        const pendingModal = document.getElementById('pending-collection-modal');
+        if (pendingModal) {
+            pendingModal.addEventListener('click', function(e) {
+                if (e.target === this) closePendingCollectionModal();
+            });
+        }
+    });
+    // Helper functions
+    function statusText(key) {
+        if (key === 'danger') return 'Full Bin';
+        if (key === 'warning') return 'Nearly Full';
+        return 'Good Condition';
+    }
+    function escapeHtml(s) {
+        if (!s) return '';
+        return s.replace(/[&<>"']/g, function(m) {
+            return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[m];
+        });
+    }
+    function escapeAttr(s) {
+        if (!s) return '';
+        return s.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    // Expose for debugging
+    window._station = { render: renderStationTable, data: stationData };
+})();
+function setupCollectorInteractions() {
+    const search = document.getElementById('collector-search');
+    const table = document.querySelector('.collector-table tbody');
+    if (search && table) {
+        search.addEventListener('input', function() {
+            const q = this.value.trim().toLowerCase();
+            Array.from(table.querySelectorAll('tr')).forEach(tr => {
+                const text = tr.textContent.toLowerCase();
+                tr.style.display = text.includes(q) ? '' : 'none';
+            });
+        });
+    }
+
+    // small control actions
+    const addBtn = document.getElementById('add-collector');
+    if (addBtn) addBtn.addEventListener('click', e => { e.preventDefault(); alert('Add New Collector — form not implemented (design-only)'); });
+    const exportBtn = document.getElementById('collector-export');
+    if (exportBtn) exportBtn.addEventListener('click', e => {
+        e.preventDefault();
+        try {
+            const rows = Array.from(document.querySelectorAll('.collector-table tbody tr')).filter(r => r.style.display !== 'none');
+            const header = ['Collector ID','Collector Name','IC Details','Phone Number','Email Address','Vehicle','Plate No.','Preferred Area','Availability'];
+            const csvRows = [header.join(',')];
+            rows.forEach(r => {
+                const cells = Array.from(r.querySelectorAll('td'));
+                const dataCells = cells.slice(0, 9);
+                const values = dataCells.map(c => '"' + c.textContent.trim().replace(/"/g,'""') + '"');
+                csvRows.push(values.join(','));
+            });
+            const csv = csvRows.join('\n');
+            window.dashboardAPI.exportCollectors({ count: rows.length }).then(resp => {
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = 'collectors_export.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            }).catch(err => { console.error('Export collectors failed:', err); alert('Export failed — see console'); });
+        } catch(err) { console.error('Export collectors handler error', err); alert('Export failed (client error)'); }
+    });
+    const filterBtn = document.getElementById('filter-sort-btn');
+    if (filterBtn) filterBtn.addEventListener('click', e => { e.preventDefault(); alert('Filter & Sort panel — design-only'); });
+    // Collector 'View' IC link -> open details modal
+    document.querySelectorAll('.collector-table .note').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const row = this.closest('tr');
+            if (!row) return;
+            const id = (row.querySelector('td') && row.querySelector('td').textContent || '').trim();
+            const name = (row.querySelector('td:nth-child(2)') && row.querySelector('td:nth-child(2)').textContent || '').trim();
+            openCollectorDetails({ id, name });
+        });
+    });
+    // details modal close and actions
+    const detailsClose = document.getElementById('collector-details-close');
+    if (detailsClose) detailsClose.addEventListener('click', e => { e.preventDefault(); closeCollectorDetails(); });
+    const detailsModal = document.getElementById('collector-details-modal');
+    if (detailsModal) {
+        detailsModal.addEventListener('click', function(e) {
+            if (e.target === this) closeCollectorDetails();
+        });
+    }
+    const addRouteBtn = document.getElementById('add-route-btn');
+    if (addRouteBtn) addRouteBtn.addEventListener('click', e => { e.preventDefault(); alert('Add New Route — design-only'); });
+    const detailsExport = document.getElementById('details-export');
+    if (detailsExport) detailsExport.addEventListener('click', e => { e.preventDefault(); alert('Export PDF — design-only'); });
+}
+// Inline assign dropdown helpers
+function closeAssignDropdown() {
+    const existing = document.getElementById('assign-dropdown');
+    if (existing) existing.remove();
+    try { document.removeEventListener('click', _assignDocListener); } catch(e){}
+    try { document.removeEventListener('keydown', _assignEscHandler); } catch(e){}
+    try { if (_currentAssignAnchor) { _currentAssignAnchor.classList.remove('assign-open'); _currentAssignAnchor = null; } } catch(e){}
+}
+let _assignDocListener = null;
+let _assignEscHandler = null;
+let _currentAssignAnchor = null;
+function showAssignDropdown(anchorEl, stationMeta = {}){
+    closeAssignDropdown();
+    const { stationId, stationName, fill } = stationMeta;
+    const node = document.createElement('div');
+    node.id = 'assign-dropdown';
+    node.className = 'assign-dropdown';
+    node.innerHTML = `
+        <div class="assign-header"><div class="title">Select Collector</div><div class="sub">${escapeHtml(stationName || stationId || '')}</div></div>
+        <div class="assign-list"><div class="empty-note">Loading collectors…</div></div>
+    `;
+    document.body.appendChild(node);
+    // mark anchor active so user sees the UI opened
+    try { anchorEl.classList.add('assign-open'); _currentAssignAnchor = anchorEl; } catch(e){}
+    // position the dropdown near anchor using fixed coords so it sits above other overlays
+    const rect = anchorEl.getBoundingClientRect();
+    const dropdownWidth = 360;
+    const top = rect.bottom + 8; // viewport coords (fixed)
+    // prefer aligning to the left of the anchor so it sits over the actions column
+    let left = rect.left;
+    // clamp left inside viewport with small margin
+    const margin = 12;
+    left = Math.max(margin, Math.min(left, window.innerWidth - dropdownWidth - margin));
+    node.style.top = top + 'px';
+    node.style.left = left + 'px';
+    // load collectors
+    window.dashboardAPI.getCollectors().then(resp => {
+        const list = node.querySelector('.assign-list');
+        if (!list) return;
+        list.innerHTML = '';
+        if (!resp || !resp.success || !resp.data || resp.data.length === 0) {
+            // fallback: if inline list empty, open the full assign modal
+            list.innerHTML = '<div class="empty-note">No collectors available — opening full assign modal…</div>';
+            setTimeout(function(){ closeAssignDropdown(); openCollectorModal(stationId, stationName, fill); }, 450);
+            return;
+        }
+        resp.data.forEach(c => {
+            const item = document.createElement('div');
+            item.className = 'assign-item';
+            item.dataset.collectorId = c.id;
+            item.innerHTML = `
+                <div class="assign-avatar">${(c.name || '').split(' ').slice(0,2).map(s=>s[0]).join('') || 'C'}</div>
+                <div style="flex:1">
+                    <div style="font-weight:700;color:#222">${escapeHtml(c.name)}</div>
+                    <div class="meta">${escapeHtml(c.phone || '')} ${c.status ? ('• ' + c.status) : ''}</div>
+                </div>
+                <div style="margin-left:8px;color:#2e9f69;font-weight:700">Assign</div>
+            `;
+            item.addEventListener('click', function(e){
+                e.preventDefault();
+                // call assign collector API
+                const collectorId = this.dataset.collectorId;
+                if (!collectorId) return;
+                node.querySelectorAll('.assign-item').forEach(it => it.style.opacity = 0.6);
+                window.dashboardAPI.assignCollector(stationId, collectorId).then(res => {
+                    if (res && res.success) {
+                        // design-only: change station fill/status to show emptied
+                        try {
+                            const idx = stationData.findIndex(s => s.id === stationId);
+                            if (idx > -1) {
+                                stationData[idx].fill = 5; // set to near-empty demo
+                                stationData[idx].status = 'good';
+                            }
+                        } catch(e){}
+                        closeAssignDropdown();
+                        renderStationTable(currentPage);
+                        alert('Collector assigned successfully (demo)');
+                    } else {
+                        closeAssignDropdown();
+                        alert('Failed to assign collector (demo)');
+                    }
+                }).catch(err => {
+                    console.error('assignCollector error', err);
+                    closeAssignDropdown();
+                    alert('Error assigning collector (see console)');
+                });
+            });
+            list.appendChild(item);
+        });
+    }).catch(err => {
+        const list = node.querySelector('.assign-list');
+        if (list) list.innerHTML = '<div class="empty-note">Unable to load collectors — opening full assign modal…</div>';
+        setTimeout(function(){ closeAssignDropdown(); openCollectorModal(stationId, stationName, fill); }, 450);
+    });
+    // close when click outside and ignore clicks inside the new node itself
+    _assignDocListener = function(ev){
+        try {
+            if (!node.contains(ev.target) && ev.target !== anchorEl) {
+                closeAssignDropdown();
+            }
+        } catch(e) { /* ignore */ }
+    };
+    document.addEventListener('click', _assignDocListener);
+    _assignEscHandler = function(ev){ if (ev.key === 'Escape') closeAssignDropdown(); };
+    document.addEventListener('keydown', _assignEscHandler);
+}
+// Pending Collection Modal (opened from Empty Bin action)
+function openPendingCollectionModal(stationId, stationName, fill) {
+    const modal = document.getElementById('pending-collection-modal');
+    if (!modal) return;
+    // Mock pending collections data for demo
+    const pendingCollections = [
+        { id: '#CR-050', household: '#H-058', location: '2, Jalan SS15, Subang Jaya', time: '4:15 PM' }
+    ];
+    const tbody = modal.querySelector('#pending-collection-tbody');
+    if (tbody) {
+        tbody.innerHTML = '';
+        pendingCollections.forEach(pc => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${escapeHtml(pc.id)}</td>
+                <td>${escapeHtml(pc.household)}</td>
+                <td>${escapeHtml(pc.location)}</td>
+                <td>${escapeHtml(pc.time)}</td>
+                <td><select class="assign-select"><option>Select Collector</option><option>Mohd. Zafir Ali</option><option>Mohd. Daud Raj</option><option>Daniel Tan</option><option>Mohd. Ahmad Raj</option><option>Mohd. Hamzah Syah</option><option>Mariusis Jaths</option></select></td>
+                <td><a href="#" class="ai-suggestion-link">AI Suggestion →</a></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+    const entriesInfo = modal.querySelector('#pending-entries-info');
+    if (entriesInfo) entriesInfo.textContent = `Showing 1 to 1 of 1 entries`;
+    modal.classList.add('show');
+    modal.style.display = 'flex';
+    try { modal.querySelector('#pending-collection-tbody').focus(); } catch(e){}
+}
+function closePendingCollectionModal() {
+    const modal = document.getElementById('pending-collection-modal');
+    if (!modal) return;
+    modal.classList.remove('show');
+    modal.style.display = 'none';
+}
+// Collector details modal (open / close / small helpers)
+function openCollectorDetails(data = {}) {
+    const modal = document.getElementById('collector-details-modal');
+    if (!modal) return;
+    try {
+        const nameEl = modal.querySelector('.collector-name-large');
+        const idEl = modal.querySelector('.collector-id');
+        if (nameEl) {
+            // nameEl may contain child nodes; set text node only
+            if (nameEl.firstChild) nameEl.firstChild.textContent = data.name || nameEl.firstChild.textContent;
+            else nameEl.textContent = data.name || nameEl.textContent;
+        }
+        if (idEl) idEl.textContent = data.id || idEl.textContent;
+    } catch (e) { /* ignore populate errors */ }
+    // focus modal for accessibility
+    modal.classList.add('show');
+    const content = modal.querySelector('.modal-content');
+    if (content) {
+        content.focus();
+    }
+    // Add an escape key handler (scoped) so Esc closes this modal
+    function onKey(e) {
+        if (e.key === 'Escape' || e.key === 'Esc') {
+            closeCollectorDetails();
+            // will be cleaned in closeCollectorDetails via stored reference
+        }
+    }
+    document.addEventListener('keydown', onKey);
+    // keep reference so closeCollectorDetails can remove it later
+    modal._onKey = onKey;
+}
+function closeCollectorDetails() {
+    const modal = document.getElementById('collector-details-modal');
+    if (!modal) return;
+    modal.classList.remove('show');
+    // ensure any escape handler gets cleaned up
+    try {
+        if (modal._onKey) {
+            document.removeEventListener('keydown', modal._onKey);
+            delete modal._onKey;
+        }
+    } catch (e) { /* ignore */ }
+}
+function setupCollectionInteractions() {
+    const search = document.getElementById('collection-search');
+    const table = document.querySelector('.collection-table tbody');
+    if (search && table) {
+        search.addEventListener('input', function() {
+            const q = this.value.trim().toLowerCase();
+            Array.from(table.querySelectorAll('tr')).forEach(tr => {
+                const text = tr.textContent.toLowerCase();
+                tr.style.display = text.includes(q) ? '' : 'none';
+            });
+        });
+    }
+    // pagination buttons: basic UI toggle
+    const pageBtns = document.querySelectorAll('#collection-content .pagination .page-btn');
+    if (pageBtns && pageBtns.length) {
+        pageBtns.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                pageBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const page = this.textContent.trim();
+                const rows = Array.from(document.querySelectorAll('.collection-table tbody tr'));
+                if (page === '1') rows.forEach((r,i)=> r.style.display = i < 10 ? '' : 'none');
+                if (page === '2') rows.forEach((r,i)=> r.style.display = i >= 10 && i < 20 ? '' : 'none');
+                if (this.classList.contains('next')) pageBtns.forEach(b => { if (b.textContent.trim()==='2') b.click(); });
+            });
+        });
+        pageBtns[0].classList.add('active');
+    }
+    // export button (CSV fallback)
+    const exportBtn = document.getElementById('collection-export');
+    if (exportBtn) exportBtn.addEventListener('click', e => {
+        e.preventDefault();
+        try {
+            const rows = Array.from(document.querySelectorAll('.collection-table tbody tr')).filter(r => r.style.display !== 'none');
+            const header = ['Date','Collector ID','Total Stops','Total Distance','Status'];
+            const csvRows = [header.join(',')];
+            rows.forEach(r => {
+                const cells = Array.from(r.querySelectorAll('td'));
+                const dataCells = cells.slice(0,5);
+                const values = dataCells.map(c => '"' + c.textContent.trim().replace(/"/g,'""') + '"');
+                csvRows.push(values.join(','));
+            });
+            const csv = csvRows.join('\n');
+            window.dashboardAPI.exportCollections({ count: rows.length }).then(resp => {
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = 'collections_export.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            }).catch(err => { console.error('Export collections failed:', err); alert('Export failed — see console'); });
+        } catch(err) { console.error('Export collections handler error', err); alert('Export failed (client error)'); }
+    });
+    const filterBtn = document.getElementById('collection-filter-sort');
+    if (filterBtn) filterBtn.addEventListener('click', e => { e.preventDefault(); alert('Filter & Sort panel — design-only'); });
+    // view details -> open collector details modal (use collector ID to find name if available)
+    document.querySelectorAll('.collection-table .view-details').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const row = this.closest('tr');
+            if (!row) return;
+            const collectorId = (row.querySelector('td:nth-child(2)') && row.querySelector('td:nth-child(2)').textContent || '').trim();
+            let name = '';
+            // try to find collector name in collector table
+            const collectors = document.querySelectorAll('.collector-table tbody tr');
+            collectors.forEach(r => {
+                const idCell = r.querySelector('td:nth-child(1)');
+                const nameCell = r.querySelector('td:nth-child(2)');
+                if (idCell && idCell.textContent.trim() === collectorId) {
+                    name = nameCell ? nameCell.textContent.trim() : '';
+                }
+            });
+            if (!name) name = 'Collector';
+            openCollectorDetails({ id: collectorId, name });
+        });
+    });
+}
+function setupHouseholdInteractions() {
+    const search = document.getElementById('household-search');
+    const table = document.querySelector('.household-table tbody');
+    if (search && table) {
+        search.addEventListener('input', function() {
+            const q = this.value.trim().toLowerCase();
+            Array.from(table.querySelectorAll('tr')).forEach(tr => {
+                const text = tr.textContent.toLowerCase();
+                tr.style.display = text.includes(q) ? '' : 'none';
+            });
+        });
+    }
+    // pagination buttons: basic UI toggle
+    const pageBtns = document.querySelectorAll('#household-content .pagination .page-btn');
+    if (pageBtns && pageBtns.length) {
+        pageBtns.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                pageBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const page = this.textContent.trim();
+                const rows = Array.from(document.querySelectorAll('.household-table tbody tr'));
+                if (page === '1') {
+                    rows.forEach((r, i) => r.style.display = i < 10 ? '' : 'none');
+                } else if (page === '2') {
+                    rows.forEach((r, i) => r.style.display = i >= 10 && i < 20 ? '' : 'none');
+                } else if (this.classList.contains('next')) {
+                    pageBtns.forEach(b => { if (b.textContent.trim()==='2') b.click(); });
+                }
+            });
+        });
+        pageBtns[0].classList.add('active');
+    }
+    // small control actions
+    const refreshBtn = document.getElementById('household-refresh');
+    if (refreshBtn) refreshBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const btn = this;
+        // prevent double-click while refreshing
+        if (btn.disabled || btn.dataset.refreshing === 'true') return;
+        btn.dataset.refreshing = 'true';
+        btn.disabled = true;
+        try {
+            // rotation animation
+            btn.style.transform = 'rotate(0deg)';
+            btn.style.transition = 'transform 0.6s ease';
+            setTimeout(() => { btn.style.transform = 'rotate(360deg)'; }, 10);
+            // visual feedback on table
+            const table = document.querySelector('.household-table');
+            if (table) {
+                table.style.transition = 'box-shadow 0.25s ease, transform 0.25s ease';
+                table.style.transform = 'translateY(-4px)';
+                table.style.boxShadow = '0 12px 34px rgba(0,0,0,0.08)';
+                setTimeout(() => { table.style.transform = ''; table.style.boxShadow = ''; }, 400);
+            }
+            // reload after animation completes (600ms)
+            setTimeout(() => {
+                // reset attribute briefly in case reload is prevented
+                btn.dataset.refreshing = 'false';
+                btn.disabled = false;
+                // perform page reload
+                window.location.reload();
+            }, 650);
+        } catch (err) {
+            console.error('Household refresh error', err);
+            btn.dataset.refreshing = 'false';
+            btn.disabled = false;
+        }
+    });
+    const exportBtn = document.getElementById('household-export');
+    if (exportBtn) exportBtn.addEventListener('click', e => {
+        e.preventDefault();
+        try {
+            // Collect visible rows from household table
+            const rows = Array.from(document.querySelectorAll('.household-table tbody tr'))
+                .filter(r => r.style.display !== 'none');
+            // CSV header
+            const header = ['Household ID','Household Name','Phone Number','Email Address','Gender','Points','Credit','UCO Deposit','Status'];
+            const csvRows = [header.join(',')];
+            rows.forEach(r => {
+                const cells = Array.from(r.querySelectorAll('td'));
+                // ignore actions cell (last)
+                const dataCells = cells.slice(0, 9);
+                const values = dataCells.map(c => '"' + c.textContent.trim().replace(/"/g, '""') + '"');
+                csvRows.push(values.join(','));
+            });
+            const csv = csvRows.join('\n');
+            // Call backend (mock) then trigger client-side download (fallback)
+            window.dashboardAPI.exportHouseholds({ count: rows.length }).then(resp => {
+                // create blob and trigger download
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'households_export.csv';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }).catch(err => {
+                console.error('Export households failed:', err);
+                alert('Export failed — see console');
+            });
+        } catch (err) {
+            console.error('Export handler error', err);
+            alert('Export failed (client error)');
+        }
+    });
+    const filterBtn = document.getElementById('household-filter-sort');
+    if (filterBtn) filterBtn.addEventListener('click', e => { e.preventDefault(); alert('Filter & Sort panel — design-only'); });
+}
+// Function to load and parse Fnl-Household.csv
+// Pagination state for household
+let householdFullData = [];
+let householdCurrentPage = 1;
+const householdRecordsPerPage = 15;
+
+// Pagination state for collector
+let collectorFullData = [];
+let collectorCurrentPage = 1;
+const collectorRecordsPerPage = 15;
+
+
+
+
+// Pagination state for household
+function loadHouseholdFromCSV(url = 'Fnl-Household.csv') {
+    return fetch(url)
+        .then(resp => {
+            if (!resp.ok) throw new Error('Failed to load household CSV');
+            return resp.text();
+        })
+        .then(text => {
+            if (!text) return [];
+            const parsed = parseCSV(text.trim());
+            if (!parsed || parsed.length < 1) return [];
+            const headerRow = parsed.shift().map(h => (h || '').trim());
+            const data = parsed.map(r => {
+                const obj = {};
+                for (let i = 0; i < headerRow.length; i++) {
+                    if (headerRow[i]) obj[headerRow[i]] = (r[i] || '').trim();
+                }
+                return obj;
+            });
+            householdFullData = data;
+            householdCurrentPage = 1;
+            renderHouseholdPage(1);
+            updateHouseholdKPI(data.length);
+            updateTop5RewardsLeaders(data);
+            return data;
+        })
+        .catch(err => {
+            console.error('Error loading household CSV:', err);
+            return [];
+        });
+}
+// Function to load and parse Fnl-Collector.csv
+function loadCollectorFromCSV(url = 'Fnl-Collector.csv') {
+    return fetch(url)
+        .then(resp => {
+            if (!resp.ok) throw new Error('Failed to load collector CSV');
+            return resp.text();
+        })
+        .then(text => {
+            if (!text) return [];
+            const parsed = parseCSV(text.trim());
+            if (!parsed || parsed.length < 1) return [];
+            const headerRow = parsed.shift().map(h => (h || '').trim());
+            const data = parsed.map(r => {
+                const obj = {};
+                for (let i = 0; i < headerRow.length; i++) {
+                    if (headerRow[i]) obj[headerRow[i]] = (r[i] || '').trim();
+                }
+                return obj;
+            });
+            collectorFullData = data;
+            console.log("Collector data loaded:", data.length, "records");
+            collectorCurrentPage = 1;
+            renderCollectorPage(1);
+            updateCollectorKPI(data.length);
+            return data;
+        })
+        .catch(err => {
+            console.error('Error loading collector CSV:', err);
+            return [];
+        });
+}
+// Function to load and parse Fnl-Application.csv
+function loadApplicationFromCSV(url = 'Fnl-Application.csv') {
+    return fetch(url)
+        .then(resp => {
+            if (!resp.ok) throw new Error('Failed to load application CSV');
+            return resp.text();
+        })
+        .then(text => {
+            if (!text) return [];
+            const parsed = parseCSV(text.trim());
+            if (!parsed || parsed.length < 1) return [];
+            const headerRow = parsed.shift().map(h => (h || '').trim());
+            const data = parsed.map(r => {
+                const obj = {};
+                for (let i = 0; i < headerRow.length; i++) {
+                    if (headerRow[i]) obj[headerRow[i]] = (r[i] || '').trim();
+                }
+                return obj;
+            });
+            populateApplicantTableFromData(data);
+            updateApplicantKPI(data.length);
+            return data;
+        })
+        .catch(err => {
+            console.error('Error loading application CSV:', err);
+            return [];
+        });
+}
+// Function to load and parse Fnl-Station.csv
+function loadStationFromCSV(url = 'Fnl-Station.csv') {
+    return fetch(url)
+        .then(resp => {
+            if (!resp.ok) throw new Error('Failed to load station CSV');
+            return resp.text();
+        })
+        .then(text => {
+            if (!text) return [];
+            const parsed = parseCSV(text.trim());
+            if (!parsed || parsed.length < 1) return [];
+            const headerRow = parsed.shift().map(h => (h || '').trim());
+            const data = parsed.map(r => {
+                const obj = {};
+                for (let i = 0; i < headerRow.length; i++) {
+                    if (headerRow[i]) obj[headerRow[i]] = (r[i] || '').trim();
+                }
+                return obj;
+            });
+            // Transform to expected format for station table
+            const stations = data.map(s => {
+                const fillLevel = parseFloat(s.fillLevel || '0');
+                let status = 'good';
+                if (fillLevel >= 90) status = 'danger';
+                else if (fillLevel >= 70) status = 'warning';
+                
+                return {
+                    id: '#' + (s.stationID || ''),
+                    name: s.stationName || '',
+                    location: s.stationLocation || '',
+                    fill: fillLevel,
+                    purity: 0, // Not in CSV, default to 0
+                    status: status,
+                    operationHour: s.operationHour || '',
+                    adminID: s.adminID || ''
+                };
+            });
+            return stations;
+        })
+        .catch(err => {
+            console.error('Error loading station CSV:', err);
+            return [];
+        });
+}
+
+
+// Function to load and parse Fnl-Campaign.csv
+function loadCampaignFromCSV(url = 'Fnl-Campaign.csv') {
+    return fetch(url)
+        .then(resp => {
+            if (!resp.ok) throw new Error('Failed to load campaign CSV');
+            return resp.text();
+        })
+        .then(text => {
+            if (!text) return [];
+            const parsed = parseCSV(text.trim());
+            if (!parsed || parsed.length < 1) return [];
+            const headerRow = parsed.shift().map(h => (h || '').trim());
+            const data = parsed.map(r => {
+                const obj = {};
+                for (let i = 0; i < headerRow.length; i++) {
+                    if (headerRow[i]) obj[headerRow[i]] = (r[i] || '').trim();
+                }
+                return obj;
+            });
+            populateAwarenessTable(data);
+            return data;
+        })
+        .catch(err => {
+            console.error('Error loading campaign CSV:', err);
+            return [];
+        });
+}
+
+function parseCSV(text) {
+    const rows = [];
+    let row = [];
+    let field = '';
+    let inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (inQuotes) {
+            if (c === '"') {
+                if (text[i + 1] === '"') { field += '"'; i++; } else { inQuotes = false; }
+            } else {
+                field += c;
+            }
+        } else {
+            if (c === '"') {
+                inQuotes = true;
+            } else if (c === ',') {
+                row.push(field);
+                field = '';
+            } else if (c === '\r') {
+                // ignore
+            } else if (c === '\n') {
+                row.push(field);
+                rows.push(row);
+                row = [];
+                field = '';
+            } else {
+                field += c;
+            }
+        }
+    }
+    // push last field
+    if (field !== '' || row.length > 0) {
+        row.push(field);
+        rows.push(row);
+    }
+    return rows;
+}
+function escapeHtml(s) {
+    if (s === null || s === undefined) return '';
+    return String(s).replace(/[&<>"']/g, function(m) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+    });
+}
+function formatNumberWithCommas(n) {
+    if (n === null || n === undefined || n === '') return '';
+    const num = Number(String(n).replace(/[^0-9.-]+/g, ''));
+    if (isNaN(num)) return String(n);
+    return num.toLocaleString('en-US');
+}
+function populateHouseholdTableFromData(data) {
+    const tbody = document.querySelector('.household-table tbody');
+    if (!tbody) return;
+    const rows = data.map(d => {
+        const idRaw = d.householdID || d.householdId || d.household || '';
+        const id = idRaw.startsWith('#') ? idRaw : '#' + idRaw;
+        const name = d.householdName || d.householdName || '';
+        const phone = d.phoneNumber || d.phone || '';
+        const email = d.emailAddress || d.email || '';
+        const gender = d.gender || '';
+        const points = formatNumberWithCommas(d.pointsEarned || d.points || '') + (d.pointsEarned ? ' pt' : (d.points ? ' pt' : ''));
+        const creditVal = (d.creditBalance || d.credit || '').toString();
+        const credit = creditVal ? ('RM ' + Number(creditVal).toFixed(2)) : '';
+        const ucoVal = (d.totalUCODeposited || d.totalUcoDeposited || d.ucoDeposited || '').toString();
+        const uco = ucoVal ? (Number(ucoVal).toFixed(2).replace(/\.00$/, '') + ' kg') : '';
+        const status = d.accountStatus || d.status || '';
+        const action = (String(status).toLowerCase().includes('active')) ? `<a href="#" class="danger-action">[Deactivate]</a>` : `<a href="#" class="success-action">[Reactivate]</a>`;
+        return `
+            <tr>
+                <td>${escapeHtml(id)}</td>
+                <td>${escapeHtml(name)}</td>
+                <td>${escapeHtml(phone)}</td>
+                <td>${escapeHtml(email)}</td>
+                <td>${escapeHtml(gender)}</td>
+                <td>${escapeHtml(points)}</td>
+                <td>${escapeHtml(credit)}</td>
+                <td>${escapeHtml(uco)}</td>
+                <td>${escapeHtml(status)}</td>
+                <td class="actions-col">${action}</td>
+            </tr>
+        `;
+    }).join('\n');
+    tbody.innerHTML = rows;
+}
+function updateHouseholdKPI(count) {
+    try {
+        const kpiCards = Array.from(document.querySelectorAll('.kpi-card'));
+        for (const card of kpiCards) {
+            const h = card.querySelector('.kpi-header h3');
+            if (h && /household/i.test(h.textContent || '')) {
+                const valueEl = card.querySelector('.kpi-value');
+                if (valueEl) {
+                    valueEl.innerHTML = `${count} <span class="unit">Households</span>`;
+                }
+                break;
+            }
+        }
+    } catch (e) { /* ignore */ }
+}
+function updateCollectorKPI(count) {
+    try {
+        const kpiCards = Array.from(document.querySelectorAll('.kpi-card'));
+        for (const card of kpiCards) {
+            const h = card.querySelector('.kpi-header h3');
+            if (h && /collector/i.test(h.textContent || '')) {
+                const valueEl = card.querySelector('.kpi-value');
+                if (valueEl) {
+                    valueEl.innerHTML = `${count} <span class="unit">Collectors</span>`;
+                }
+                break;
+            }
+        }
+    } catch (e) { /* ignore */ }
+}
+function populateApplicantTableFromData(data) {
+    const tbody = document.querySelector('.applicant-table tbody');
+    if (!tbody) return;
+    const rows = data.map(d => {
+        const id = d.applicationID || d.applicationId || '';
+        const name = d.applicantName || d.name || '';
+        const phone = d.phoneNumber || d.phone || '';
+        const email = d.emailAddress || d.email || '';
+        const vehicle = d.vehicleType || '';
+        const plate = d.vehiclePlateNumber || '';
+        const area = d.preferredCollectionArea || '';
+        const status = d.applicationStatus || d.status || '';
+        const statusClass = String(status).toLowerCase().includes('approve') ? 'success' : 
+                           String(status).toLowerCase().includes('reject') ? 'danger' : 'warning';
+        const action = String(status).toLowerCase().includes('pending') 
+            ? `<a href="#" class="success-action">[Approve]</a> <a href="#" class="danger-action">[Reject]</a>`
+            : `<a href="#" class="note">[View]</a>`;
+        return `
+            <tr>
+                <td>${escapeHtml('#' + id)}</td>
+                <td>${escapeHtml(name)}</td>
+                <td>${escapeHtml(phone)}</td>
+                <td>${escapeHtml(email)}</td>
+                <td>${escapeHtml(vehicle)}</td>
+                <td>${escapeHtml(plate)}</td>
+                <td>${escapeHtml(area)}</td>
+                <td><span class="${statusClass}">${escapeHtml(status)}</span></td>
+                <td class="actions-col">${action}</td>
+            </tr>
+        `;
+    }).join('\n');
+    tbody.innerHTML = rows;
+}
+
+function updateApplicantKPI(count) {
+    try {
+        const kpiCards = Array.from(document.querySelectorAll('.kpi-card'));
+        for (const card of kpiCards) {
+            const h = card.querySelector('.kpi-header h3');
+            if (h && /applicant/i.test(h.textContent || '')) {
+                const valueEl = card.querySelector('.kpi-value');
+                if (valueEl) {
+                    valueEl.innerHTML = `${count} <span class="unit">Applications</span>`;
+                }
+                break;
+            }
+        }
+    } catch (e) { /* ignore */ }
+}
+function updateStationKPI(count) {
+    try {
+        const kpiCards = Array.from(document.querySelectorAll('.kpi-card'));
+        for (const card of kpiCards) {
+            const h = card.querySelector('.kpi-header h3');
+            if (h && /station/i.test(h.textContent || '')) {
+                const valueEl = card.querySelector('.kpi-value');
+                if (valueEl) {
+                    valueEl.innerHTML = `${count} <span class="unit">Stations</span>`;
+                }
+                break;
+            }
+        }
+    } catch (e) { /* ignore */ }
+}
+function updateTop5RewardsLeaders(householdData) {
+    try {
+        const tbody = document.querySelector('.leaderboard-table tbody');
+        if (!tbody) return;
+        
+        // Sort by points (highest first) and take top 5
+        const sorted = householdData
+            .map(h => ({
+                id: h.householdID || h.householdId || '',
+                name: h.householdName || '',
+                points: parseInt(String(h.pointsEarned || h.points || '0').replace(/,/g, '')) || 0
+            }))
+            .sort((a, b) => b.points - a.points)
+            .slice(0, 5);
+        
+        // Generate rows
+        const rows = sorted.map((h, index) => {
+            const rank = index + 1;
+            const rankClass = `rank-${rank}`;
+            const formattedPoints = h.points.toLocaleString('en-US');
+            return `
+                <tr>
+                    <td><span class="rank-badge ${rankClass}">${rank}</span></td>
+                    <td>#${h.id}</td>
+                    <td>${formattedPoints}</td>
+                </tr>
+            `;
+        }).join('');
+        
+        tbody.innerHTML = rows;
+    } catch (e) {
+        console.error('Error updating leaderboard:', e);
+    }
+}
+
+function populateAwarenessTable(campaigns) {
+    try {
+        const tbody = document.querySelector('.data-table tbody');
+        if (!tbody) return;
+        
+        const rows = campaigns.map(c => {
+            const id = c.campaignID || '';
+            const name = c.campaignName || '';
+            const views = c.campaignViews || '0';
+            const watchTime = c.averageWatchTime || '0';
+            const clickRate = c.clickRate || '0';
+            const shares = c.totalShare || '0';
+            
+            return `
+                <tr>
+                    <td>#${escapeHtml(id)}</td>
+                    <td>${escapeHtml(name)}</td>
+                    <td>${escapeHtml(views)}</td>
+                    <td>${escapeHtml(watchTime)} seconds</td>
+                    <td>${escapeHtml(clickRate)}%</td>
+                    <td>${escapeHtml(shares)}</td>
+                </tr>
+            `;
+        }).join('');
+        
+        tbody.innerHTML = rows;
+    } catch (e) {
+        console.error('Error populating awareness table:', e);
+    }
+}
+
+function setupApplicantInteractions() {
+    const search = document.getElementById('applicant-search');
+    const table = document.querySelector('.applicant-table tbody');
+    if (search && table) {
+        search.addEventListener('input', function() {
+            const q = this.value.trim().toLowerCase();
+            Array.from(table.querySelectorAll('tr')).forEach(tr => {
+                const text = tr.textContent.toLowerCase();
+                tr.style.display = text.includes(q) ? '' : 'none';
+            });
+        });
+    }
+}
+
+function setupReportInteractions() {
+    const search = document.getElementById('report-search');
+    const table = document.querySelector('.report-table tbody');
+    if (search && table) {
+        search.addEventListener('input', function() {
+            const q = this.value.trim().toLowerCase();
+            Array.from(table.querySelectorAll('tr')).forEach(tr => {
+                const text = tr.textContent.toLowerCase();
+                tr.style.display = text.includes(q) ? '' : 'none';
+            });
+        });
+    }
+    // Refresh button
+    const refreshBtn = document.getElementById('report-refresh');
+    if (refreshBtn) refreshBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const btn = this;
+        btn.style.transform = 'rotate(0deg)';
+        btn.style.transition = 'transform 0.6s ease';
+        setTimeout(() => { btn.style.transform = 'rotate(360deg)'; }, 10);
+        const tableEl = document.querySelector('.report-table');
+        if (tableEl) {
+            tableEl.style.transition = 'box-shadow 0.25s ease, transform 0.25s ease';
+            tableEl.style.transform = 'translateY(-4px)';
+            tableEl.style.boxShadow = '0 12px 34px rgba(0,0,0,0.08)';
+            setTimeout(() => { tableEl.style.transform = ''; tableEl.style.boxShadow = ''; }, 400);
+        }
+        console.log('Report refresh (demo)');
+    });
+    // Export button -> CSV fallback
+    const exportBtn = document.getElementById('report-export');
+    if (exportBtn) exportBtn.addEventListener('click', e => {
+        e.preventDefault();
+        try {
+            const rows = Array.from(document.querySelectorAll('.report-table tbody tr')).filter(r => r.style.display !== 'none');
+            const header = ['Report ID','Collector ID','Date and Time','Report Type','Status'];
+            const csvRows = [header.join(',')];
+            rows.forEach(r => {
+                const cells = Array.from(r.querySelectorAll('td'));
+                const dataCells = cells.slice(0,5);
+                const values = dataCells.map(c => '"' + c.textContent.trim().replace(/"/g,'""') + '"');
+                csvRows.push(values.join(','));
+            });
+            const csv = csvRows.join('\n');
+            window.dashboardAPI.exportReports({ count: rows.length }).then(resp => {
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = 'reports_export.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            }).catch(err => { console.error('Export reports failed:', err); alert('Export failed — see console'); });
+        } catch(err) { console.error('Export reports handler error', err); alert('Export failed (client error)'); }
+    });
+    // Report 'View details' -> open report modal (accident report view)
+    document.querySelectorAll('.report-table .view-details').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const row = this.closest('tr');
+            if (!row) return;
+            const reportId = (row.querySelector('td:nth-child(1)') && row.querySelector('td:nth-child(1)').textContent || '').trim();
+            const collectorId = (row.querySelector('td:nth-child(2)') && row.querySelector('td:nth-child(2)').textContent || '').trim();
+            const dateTime = (row.querySelector('td:nth-child(3)') && row.querySelector('td:nth-child(3)').textContent || '').trim();
+            const reportType = (row.querySelector('td:nth-child(4)') && row.querySelector('td:nth-child(4)').textContent || '').trim();
+            // Report-specific mapping
+            if (reportType.toLowerCase().includes('accident')) {
+                // Mock mapping for demonstration - more rows can be added
+                let details = {
+                    id: reportId,
+                    type: reportType,
+                    collector: collectorId,
+                    date: dateTime,
+                    location: '3, Jalan SS18/12B, Petaling Jaya',
+                    accidentType: 'Minor Vehicle Damage',
+                    description: 'I was hit by another car at the junction. No injuries.'
+                };
+                openReportDetails(details);
+            } else if (reportType.toLowerCase().includes('collection')) {
+                // Collection report -> populate fields used for collection reports
+                let cdetails = {
+                    id: reportId,
+                    type: reportType,
+                    collector: collectorId,
+                    date: dateTime,
+                    collectionId: '#CR-087',
+                    missReason: 'Household Not Home',
+                    description: 'Arrived at location but no one was available. Attempted to call twice.'
+                };
+                openReportDetails(cdetails);
+            } else if (reportType.toLowerCase().includes('manual')) {
+                // Manual report -> show title, category
+                const mdetails = {
+                    id: reportId,
+                    type: reportType,
+                    collector: collectorId,
+                    date: dateTime,
+                    title: 'Vehicle requires maintenance check',
+                    category: 'Vehicle/Maintenance',
+                    description: "Noticed a rattling noise from the engine during today's route."
+                };
+                openReportDetails(mdetails);
+            } else {
+                // generic report type - simple view
+                openReportDetails({ id: reportId, type: reportType, collector: collectorId, date: dateTime, location: '-', accidentType: '-', description: '-' });
+            }
+        });
+    });
+    // View details removed from markup — no event handlers required
+}
+// Report details modal helpers
+function openReportDetails(data = {}) {
+    const modal = document.getElementById('report-details-modal');
+    if (!modal) return;
+    try {
+        if (data.id) document.getElementById('rd-report-id').textContent = data.id;
+        if (data.type) document.getElementById('rd-report-type').textContent = data.type;
+        if (data.collector) document.getElementById('rd-collector-id').textContent = data.collector;
+        if (data.date) document.getElementById('rd-date').textContent = data.date;
+        if (data.location) document.getElementById('rd-location').textContent = data.location;
+        if (data.accidentType) document.getElementById('rd-accident-type').textContent = data.accidentType;
+        if (data.collectionId) document.getElementById('rd-collection-id').textContent = data.collectionId;
+        if (data.missReason) document.getElementById('rd-miss-reason').textContent = data.missReason;
+        if (data.title) document.getElementById('rd-title').textContent = data.title;
+        if (data.category) document.getElementById('rd-category').textContent = data.category;
+        if (data.description) document.getElementById('rd-description').textContent = data.description;
+    } catch (e) { /* ignore */ }
+    // Toggle which fields are visible based on type
+    const typeVal = (data.type || '').toLowerCase();
+    const labelCollection = document.getElementById('label-collection-id');
+    const fieldCollection = document.getElementById('rd-collection-id');
+    const labelMiss = document.getElementById('label-miss-reason');
+    const fieldMiss = document.getElementById('rd-miss-reason');
+    const labelLocation = document.getElementById('label-location');
+    const fieldLocation = document.getElementById('rd-location');
+    const labelAccType = document.getElementById('label-accident-type');
+    const fieldAccType = document.getElementById('rd-accident-type');
+    const markBtn = document.getElementById('report-mark-resolved');
+    const contactBtn = document.getElementById('report-contact-collector');
+    if (typeVal.includes('collection')) {
+        // show collection-specific
+        if (labelCollection) labelCollection.style.display = '';
+        if (fieldCollection) fieldCollection.style.display = '';
+        if (labelMiss) labelMiss.style.display = '';
+        if (fieldMiss) fieldMiss.style.display = '';
+        // hide accident fields
+        if (labelLocation) labelLocation.style.display = 'none';
+        if (fieldLocation) fieldLocation.style.display = 'none';
+        if (labelAccType) labelAccType.style.display = 'none';
+        if (fieldAccType) fieldAccType.style.display = 'none';
+        // actions: show both Mark as Resolved and Contact Collector for collection reports
+        if (markBtn) markBtn.style.display = 'inline-block';
+        if (contactBtn) contactBtn.style.display = 'inline-block';
+    } else if (typeVal.includes('manual')) {
+        // manual report -> show title + category
+        const labelTitle = document.getElementById('label-title');
+        const fieldTitle = document.getElementById('rd-title');
+        const labelCategory = document.getElementById('label-category');
+        const fieldCategory = document.getElementById('rd-category');
+        // hide collection-specific
+        if (labelCollection) labelCollection.style.display = 'none';
+        if (fieldCollection) fieldCollection.style.display = 'none';
+        if (labelMiss) labelMiss.style.display = 'none';
+        if (fieldMiss) fieldMiss.style.display = 'none';
+        // show manual specific
+        if (labelTitle) labelTitle.style.display = '';
+        if (fieldTitle) fieldTitle.style.display = '';
+        if (labelCategory) labelCategory.style.display = '';
+        if (fieldCategory) fieldCategory.style.display = '';
+        // show both action buttons for manual reports
+        if (markBtn) markBtn.style.display = 'inline-block';
+        if (contactBtn) contactBtn.style.display = 'inline-block';
+    } else {
+        // default / accident view: show accident fields, hide collection-specific
+        if (labelCollection) labelCollection.style.display = 'none';
+        if (fieldCollection) fieldCollection.style.display = 'none';
+        if (labelMiss) labelMiss.style.display = 'none';
+        if (fieldMiss) fieldMiss.style.display = 'none';
+        if (labelLocation) labelLocation.style.display = '';
+        if (fieldLocation) fieldLocation.style.display = '';
+        if (labelAccType) labelAccType.style.display = '';
+        if (fieldAccType) fieldAccType.style.display = '';
+        if (markBtn) markBtn.style.display = 'inline-block';
+        if (contactBtn) contactBtn.style.display = 'inline-block';
+    }
+    modal.classList.add('show');
+    const content = modal.querySelector('.modal-content');
+    if (content) content.focus();
+    function onKey(e) {
+        if (e.key === 'Escape' || e.key === 'Esc') {
+            closeReportDetails();
+            document.removeEventListener('keydown', onKey);
+        }
+    }
+    document.addEventListener('keydown', onKey);
+    modal._onKey = onKey;
+}
+function closeReportDetails() {
+    const modal = document.getElementById('report-details-modal');
+    if (!modal) return;
+    modal.classList.remove('show');
+    try { if (modal._onKey) { document.removeEventListener('keydown', modal._onKey); delete modal._onKey; } } catch(e) {}
+}
+// attach close handlers
+document.addEventListener('DOMContentLoaded', function() {
+    const closeBtn = document.getElementById('report-details-close');
+    if (closeBtn) closeBtn.addEventListener('click', e => { e.preventDefault(); closeReportDetails(); });
+    const modal = document.getElementById('report-details-modal');
+    if (modal) modal.addEventListener('click', function(e) { if (e.target === this) closeReportDetails(); });
+    const markBtn = document.getElementById('report-mark-resolved');
+    if (markBtn) markBtn.addEventListener('click', e => { e.preventDefault(); alert('Marked as resolved (demo)'); closeReportDetails(); });
+    const contactBtn = document.getElementById('report-contact-collector');
+    if (contactBtn) contactBtn.addEventListener('click', e => { e.preventDefault(); alert('Contacting collector (demo)'); });
+});
+function setupSettingsInteractions(){
+    // theme toggle and CO2 toggle - persist state to localStorage as demo
+    const themeToggle = document.getElementById('theme-toggle');
+    const co2Toggle = document.getElementById('co2-toggle');
+    const routeAuto = document.getElementById('route-auto');
+    // load saved state
+    try {
+        if (themeToggle && localStorage.getItem('settings:theme') === '1') themeToggle.checked = true;
+        if (co2Toggle && localStorage.getItem('settings:co2') === '1') co2Toggle.checked = true;
+        if (routeAuto && localStorage.getItem('settings:routeAuto') === '1') routeAuto.checked = true;
+    } catch (e) { /* ignore private modes */ }
+    if (themeToggle) themeToggle.addEventListener('change', function(){
+        try{ localStorage.setItem('settings:theme', this.checked ? '1' : '0'); }catch(e){}
+    });
+    if (co2Toggle) co2Toggle.addEventListener('change', function(){
+        try{ localStorage.setItem('settings:co2', this.checked ? '1' : '0'); }catch(e){}
+    });
+    if (routeAuto) routeAuto.addEventListener('change', function(){
+        try{ localStorage.setItem('settings:routeAuto', this.checked ? '1' : '0'); }catch(e){}
+    });
+    // extra selects and simple persistence for demo
+    const lang = document.getElementById('setting-language');
+    const dtfmt = document.getElementById('setting-datetime');
+    const region = document.getElementById('setting-region');
+    const rformat = document.getElementById('setting-report-format');
+    const schedule = document.getElementById('setting-schedule');
+    try {
+        if (lang && localStorage.getItem('settings:language')) lang.value = localStorage.getItem('settings:language');
+        if (dtfmt && localStorage.getItem('settings:datetime')) dtfmt.value = localStorage.getItem('settings:datetime');
+        if (region && localStorage.getItem('settings:region')) region.value = localStorage.getItem('settings:region');
+        if (rformat && localStorage.getItem('settings:reportFormat')) rformat.value = localStorage.getItem('settings:reportFormat');
+        if (schedule && localStorage.getItem('settings:schedule')) schedule.value = localStorage.getItem('settings:schedule');
+    } catch(e){}
+    if (lang) lang.addEventListener('change', function(){ try{ localStorage.setItem('settings:language', this.value); }catch(e){} });
+    if (dtfmt) dtfmt.addEventListener('change', function(){ try{ localStorage.setItem('settings:datetime', this.value); }catch(e){} });
+    if (region) region.addEventListener('change', function(){ try{ localStorage.setItem('settings:region', this.value); }catch(e){} });
+    if (rformat) rformat.addEventListener('change', function(){ try{ localStorage.setItem('settings:reportFormat', this.value); }catch(e){} });
+    if (schedule) schedule.addEventListener('change', function(){ try{ localStorage.setItem('settings:schedule', this.value); }catch(e){} });
+    // logout action: clear demo auth and redirect to login
+    const logoutBtn = document.getElementById('logout-action');
+    if (logoutBtn){
+        logoutBtn.addEventListener('click', function(e){
+            e.preventDefault();
+            if (!confirm('Log out now?')) return;
+            try{ localStorage.removeItem('kolek_auth'); localStorage.removeItem('kolek_admin'); }catch(e){}
+            // redirect back to login page
+            window.location.href = 'index.html';
+        });
+    }
+}
+function setupProfileInteractions(){
+    const fileInput = document.getElementById('profile-file-input');
+    const avatar = document.getElementById('profile-avatar');
+    const headerAvatar = document.getElementById('header-user-avatar');
+    const avatarEditBtn = document.getElementById('profile-avatar-edit');
+    const saveBtn = document.getElementById('profile-save-btn');
+    const adminIdEl = document.getElementById('profile-admin-id');
+    const fullnameEl = document.getElementById('profile-fullname');
+    const emailEl = document.getElementById('profile-email');
+    const phoneCodeEl = document.getElementById('profile-phone-code');
+    const phoneEl = document.getElementById('profile-phone');
+    const genderEl = document.getElementById('profile-gender');
+    // Load persisted profile (demo)
+    try {
+        const av = localStorage.getItem('profile:avatar');
+        if (av) {
+            if (avatar) avatar.src = av;
+            if (headerAvatar) headerAvatar.src = av;
+        }
+        if (fullnameEl && localStorage.getItem('profile:fullname')) fullnameEl.value = localStorage.getItem('profile:fullname');
+        if (emailEl && localStorage.getItem('profile:email')) emailEl.value = localStorage.getItem('profile:email');
+        if (phoneEl && localStorage.getItem('profile:phone')) phoneEl.value = localStorage.getItem('profile:phone');
+        if (phoneCodeEl && localStorage.getItem('profile:phoneCode')) phoneCodeEl.value = localStorage.getItem('profile:phoneCode');
+        if (genderEl && localStorage.getItem('profile:gender')) genderEl.value = localStorage.getItem('profile:gender');
+        if (adminIdEl && localStorage.getItem('profile:adminId')) adminIdEl.value = localStorage.getItem('profile:adminId');
+    } catch(e){/* ignore */}
+    // Avatar change
+    function triggerFile() { if (fileInput) fileInput.click(); }
+    if (avatarEditBtn) avatarEditBtn.addEventListener('click', function(e){ e.preventDefault(); triggerFile(); });
+    if (fileInput) {
+        fileInput.addEventListener('change', function(){
+            if (this.files && this.files.length) {
+                const f = this.files[0];
+                const reader = new FileReader();
+                reader.onload = function(ev){
+                    try {
+                        const data = ev.target.result;
+                        if (avatar) avatar.src = data;
+                        if (headerAvatar) headerAvatar.src = data;
+                        // temporarily store preview until saved
+                        fileInput._preview = data;
+                    } catch(e){}
+                };
+                reader.readAsDataURL(f);
+            }
+        });
+    }
+    // Save changes
+    if (saveBtn) saveBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        try {
+            if (fullnameEl) localStorage.setItem('profile:fullname', fullnameEl.value.trim());
+            if (emailEl) localStorage.setItem('profile:email', emailEl.value.trim());
+            if (phoneEl) localStorage.setItem('profile:phone', phoneEl.value.trim());
+            if (phoneCodeEl) localStorage.setItem('profile:phoneCode', phoneCodeEl.value.trim());
+            if (genderEl) localStorage.setItem('profile:gender', genderEl.value.trim());
+            if (adminIdEl) localStorage.setItem('profile:adminId', adminIdEl.value.trim());
+            // commit avatar if preview exists
+            if (fileInput && fileInput._preview) {
+                localStorage.setItem('profile:avatar', fileInput._preview);
+                delete fileInput._preview;
+            }
+        } catch(e){}
+        alert('Profile saved (demo).');
+        // sync header avatar
+        try { const av = localStorage.getItem('profile:avatar'); if (av && headerAvatar) headerAvatar.src = av; } catch(e){}
+    });
+    // Allow clicking the avatar image itself to open file picker
+    if (avatar) avatar.addEventListener('click', function(e){ e.preventDefault(); triggerFile(); });
+}
+// AI Assist interactions
+function setupAIAssist() {
+    const input = document.getElementById('ai-prompt-input');
+    const send = document.getElementById('ai-send');
+    const suggestions = document.querySelectorAll('.ai-suggestion');
+    suggestions.forEach(s => {
+        s.addEventListener('click', function(){
+            input.value = this.textContent.trim();
+            input.focus();
+        });
+    });
+    const fileInput = document.getElementById('ai-file-input');
+    const uploadFeedback = document.getElementById('ai-upload-feedback');
+    const voiceBtn = document.getElementById('ai-voice');
+    function sendPrompt(){
+        const val = input.value.trim();
+        if(!val) return alert('Please enter a prompt');
+        // design-only: show a small toast + clear
+        console.log('Prompt sent to KolekBot:', val);
+        alert('KolekBot receives: "' + val + '" (demo)');
+        input.value = '';
+    }
+    if (send) send.addEventListener('click', (e)=>{ e.preventDefault(); sendPrompt(); });
+    if (input) input.addEventListener('keyup', (e)=>{ if (e.key === 'Enter') sendPrompt(); });
+    // attach -> open file picker
+    const attachBtn = document.getElementById('ai-attach');
+    if (attachBtn && fileInput) {
+        attachBtn.addEventListener('click', (e) => { e.preventDefault(); fileInput.click(); });
+        fileInput.addEventListener('change', function(e) {
+            if (this.files && this.files.length) {
+                const f = this.files[0];
+                const name = f.name || 'selected file';
+                if (uploadFeedback) {
+                    uploadFeedback.textContent = name;
+                    setTimeout(() => { if (uploadFeedback) uploadFeedback.textContent = ''; }, 4000);
+                } else {
+                    alert('Selected file: ' + name);
+                }
+                // design-only: keep a console log of selected file
+                console.log('AI file selected:', f);
+            }
+        });
+    }
+    // microphone permission - prompt user
+    if (voiceBtn) {
+        voiceBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            // Check API
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert('Microphone API not supported in this browser');
+                return;
+            }
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                // permission granted, immediately stop tracks (design-only)
+                stream.getTracks().forEach(t => t.stop());
+                alert('Microphone permission granted (demo).');
+                console.log('Microphone stream:', stream);
+            } catch (err) {
+                console.error('Microphone permission denied or error:', err);
+                alert('Microphone permission denied or unavailable.');
+            }
+        });
+    }
+    // dismiss info link
+    const dismiss = document.getElementById('dismiss-info');
+    if (dismiss) dismiss.addEventListener('click', e => { e.preventDefault(); document.querySelector('.ai-info').style.display = 'none'; });
+}
+
+// Render household table with pagination
+function renderHouseholdPage(page = 1) {
+    if (!householdFullData || householdFullData.length === 0) return;
+    
+    householdCurrentPage = page;
+    const startIndex = (page - 1) * householdRecordsPerPage;
+    const endIndex = startIndex + householdRecordsPerPage;
+    const pageData = householdFullData.slice(startIndex, endIndex);
+    
+    // Populate table with current page data
+    const tbody = document.querySelector('.household-table tbody');
+    if (!tbody) return;
+    
+    const rows = pageData.map(d => {
+        const idRaw = d.householdID || d.householdId || d.household || '';
+        const id = idRaw.startsWith('#') ? idRaw : '#' + idRaw;
+        const name = d.householdName || d.householdName || '';
+        const phone = d.phoneNumber || d.phone || '';
+        const email = d.emailAddress || d.email || '';
+        const gender = d.gender || '';
+        const points = formatNumberWithCommas(d.pointsEarned || d.points || '') + (d.pointsEarned ? ' pt' : (d.points ? ' pt' : ''));
+        const creditVal = (d.creditBalance || d.credit || '').toString();
+        const credit = creditVal ? ('RM ' + Number(creditVal).toFixed(2)) : '';
+        const ucoVal = (d.totalUCODeposited || d.totalUcoDeposited || d.ucoDeposited || '').toString();
+        const uco = ucoVal ? (Number(ucoVal).toFixed(2).replace(/\.00$/, '') + ' kg') : '';
+        const status = d.accountStatus || d.status || '';
+        const action = (String(status).toLowerCase().includes('active')) ? `<a href="#" class="danger-action">[Deactivate]</a>` : `<a href="#" class="success-action">[Reactivate]</a>`;
+        
+        return `
+            <tr>
+                <td>${escapeHtml(id)}</td>
+                <td>${escapeHtml(name)}</td>
+                <td>${escapeHtml(phone)}</td>
+                <td>${escapeHtml(email)}</td>
+                <td>${escapeHtml(gender)}</td>
+                <td>${escapeHtml(points)}</td>
+                <td>${escapeHtml(credit)}</td>
+                <td>${escapeHtml(uco)}</td>
+                <td>${escapeHtml(status)}</td>
+                <td class="actions-col">${action}</td>
+            </tr>
+        `;
+    }).join('\n');
+    tbody.innerHTML = rows;
+    
+    // Update pagination controls
+    updateHouseholdPagination();
+}
+
+// Update pagination controls
+function updateHouseholdPagination() {
+    const totalRecords = householdFullData.length;
+    const totalPages = Math.ceil(totalRecords / householdRecordsPerPage);
+    
+    // Update entries info
+    const entriesInfo = document.getElementById('household-entries-info');
+    if (entriesInfo) {
+        const startRecord = ((householdCurrentPage - 1) * householdRecordsPerPage) + 1;
+        const endRecord = Math.min(householdCurrentPage * householdRecordsPerPage, totalRecords);
+        entriesInfo.textContent = `Showing ${startRecord} to ${endRecord} of ${totalRecords} entries`;
+    }
+    
+    // Update prev/next buttons
+    const prevBtn = document.getElementById('household-prev-btn');
+    const nextBtn = document.getElementById('household-next-btn');
+    
+    if (prevBtn) {
+        prevBtn.disabled = householdCurrentPage === 1;
+    }
+    if (nextBtn) {
+        nextBtn.disabled = householdCurrentPage >= totalPages;
+    }
+    
+    // Update page numbers
+    const pageNumbersContainer = document.getElementById('household-page-numbers');
+    if (pageNumbersContainer) {
+        let pageButtons = '';
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, householdCurrentPage - 2);
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        
+        if (endPage - startPage < maxVisiblePages - 1) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+        
+        if (startPage > 1) {
+            pageButtons += `<button class="page-btn" data-page="1">1</button>`;
+            if (startPage > 2) {
+                pageButtons += `<span class="page-ellipsis">...</span>`;
+            }
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            const activeClass = i === householdCurrentPage ? ' active' : '';
+            pageButtons += `<button class="page-btn${activeClass}" data-page="${i}">${i}</button>`;
+        }
+        
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                pageButtons += `<span class="page-ellipsis">...</span>`;
+            }
+            pageButtons += `<button class="page-btn" data-page="${totalPages}">${totalPages}</button>`;
+        }
+        
+        pageNumbersContainer.innerHTML = pageButtons;
+    }
+}
+
+// Setup household pagination event listeners
+function setupHouseholdPagination() {
+    const prevBtn = document.getElementById('household-prev-btn');
+    const nextBtn = document.getElementById('household-next-btn');
+    const pageNumbersContainer = document.getElementById('household-page-numbers');
+    
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            if (householdCurrentPage > 1) {
+                renderHouseholdPage(householdCurrentPage - 1);
+            }
+        });
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            const totalPages = Math.ceil(householdFullData.length / householdRecordsPerPage);
+            if (householdCurrentPage < totalPages) {
+                renderHouseholdPage(householdCurrentPage + 1);
+            }
+        });
+    }
+    
+    if (pageNumbersContainer) {
+        pageNumbersContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('page-btn')) {
+                const page = parseInt(e.target.dataset.page);
+                if (page && page !== householdCurrentPage) {
+                    renderHouseholdPage(page);
+                }
+            }
+        });
+    }
+}
+
+
+// Render collector table with pagination
+function renderCollectorPage(page = 1) {
+    if (!collectorFullData || collectorFullData.length === 0) return;
+    
+    collectorCurrentPage = page;
+    const startIndex = (page - 1) * collectorRecordsPerPage;
+    const endIndex = startIndex + collectorRecordsPerPage;
+    const pageData = collectorFullData.slice(startIndex, endIndex);
+    
+    const tbody = document.querySelector('.collector-table tbody');
+    if (!tbody) return;
+    
+    const rows = pageData.map(d => {
+        const id = d.collectorID || d.id || d.collectorId || '';
+        const name = d.collectorName || d.name || '';
+        const ic = '[View]';
+        const phone = d.phoneNumber || d.phone || '';
+        const email = d.emailAddress || d.email || '';
+        const vehicle = d.vehicleType || d.vehicle || '';
+        const plate = d.vehiclePlateNumber || d.vehiclePlate || d.vehiclePlateNumber || '';
+        const area = d.preferredCollectionArea || d.preferredArea || '';
+        const availability = d.availability || '';
+        const status = d.accountStatus || d.accountstatus || d.status || '';
+        const action = String(status).toLowerCase().includes('active') ? `<a href="#" class="danger-action">[Deactivate]</a>` : `<a href="#" class="success-action">[Reactivate]</a>`;
+        
+        return `
+            <tr>
+                <td>${escapeHtml(id)}</td>
+                <td>${escapeHtml(name)}</td>
+                <td><a href="#" class="view-ic">${ic}</a></td>
+                <td>${escapeHtml(phone)}</td>
+                <td>${escapeHtml(email)}</td>
+                <td>${escapeHtml(vehicle)}</td>
+                <td>${escapeHtml(plate)}</td>
+                <td>${escapeHtml(area)}</td>
+                <td>${escapeHtml(availability)}</td>
+                <td>${escapeHtml(status)}</td>
+                <td class="actions-col">${action}</td>
+            </tr>
+        `;
+    }).join('\n');
+    tbody.innerHTML = rows;
+    
+    updateCollectorPagination();
+}
+
+// Update collector pagination controls
+function updateCollectorPagination() {
+    const totalRecords = collectorFullData.length;
+    const totalPages = Math.ceil(totalRecords / collectorRecordsPerPage);
+    console.log("Collector pagination - Total:", totalRecords, "Pages:", totalPages, "Current:", collectorCurrentPage);
+    
+    const entriesInfo = document.getElementById('collector-entries-info');
+    if (entriesInfo) {
+        const startRecord = ((collectorCurrentPage - 1) * collectorRecordsPerPage) + 1;
+        const endRecord = Math.min(collectorCurrentPage * collectorRecordsPerPage, totalRecords);
+        entriesInfo.textContent = `Showing ${startRecord} to ${endRecord} of ${totalRecords} entries`;
+    }
+    
+    const prevBtn = document.getElementById('collector-prev-btn');
+    const nextBtn = document.getElementById('collector-next-btn');
+    
+    if (prevBtn) {
+        prevBtn.disabled = collectorCurrentPage === 1;
+    }
+    if (nextBtn) {
+        nextBtn.disabled = collectorCurrentPage >= totalPages;
+    }
+    
+    const pageNumbersContainer = document.getElementById('collector-page-numbers');
+    if (pageNumbersContainer) {
+        let pageButtons = '';
+        console.log("Generating page buttons - startPage:", startPage, "endPage:", endPage, "totalPages:", totalPages);
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, collectorCurrentPage - 2);
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        
+        if (endPage - startPage < maxVisiblePages - 1) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+        
+        if (startPage > 1) {
+            pageButtons += `<button class="page-btn" data-page="1">1</button>`;
+            if (startPage > 2) {
+                pageButtons += `<span class="page-ellipsis">...</span>`;
+            }
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            const activeClass = i === collectorCurrentPage ? ' active' : '';
+            pageButtons += `<button class="page-btn${activeClass}" data-page="${i}">${i}</button>`;
+        }
+        
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                pageButtons += `<span class="page-ellipsis">...</span>`;
+            }
+            pageButtons += `<button class="page-btn" data-page="${totalPages}">${totalPages}</button>`;
+        }
+        
+        pageNumbersContainer.innerHTML = pageButtons;
+    }
+        console.log("Page buttons HTML length:", pageButtons.length, "First 100 chars:", pageButtons.substring(0, 100));
+}
+
+// Setup collector pagination event listeners
+function setupCollectorPagination() {
+    console.log("=== setupCollectorPagination called ===");
+    console.log("collectorFullData.length:", collectorFullData ? collectorFullData.length : "undefined");
+    
+    const prevBtn = document.getElementById('collector-prev-btn');
+    const nextBtn = document.getElementById('collector-next-btn');
+    const pageNumbersContainer = document.getElementById('collector-page-numbers');
+    
+    console.log("Pagination elements:", { prevBtn: !!prevBtn, nextBtn: !!nextBtn, pageNumbersContainer: !!pageNumbersContainer });
+    
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            if (collectorCurrentPage > 1) {
+                renderCollectorPage(collectorCurrentPage - 1);
+            }
+        });
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            const totalPages = Math.ceil(collectorFullData.length / collectorRecordsPerPage);
+            if (collectorCurrentPage < totalPages) {
+                renderCollectorPage(collectorCurrentPage + 1);
+            }
+        });
+    }
+    
+    if (pageNumbersContainer) {
+        pageNumbersContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('page-btn')) {
+                const page = parseInt(e.target.dataset.page);
+                if (page && page !== collectorCurrentPage) {
+                    renderCollectorPage(page);
+                }
+            }
+        });
+    }
+}
+
+

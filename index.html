@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kolek Dashboard Log In</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Left section with image -->
+        <div class="left-section" style="background-image: url('/Kolek-banner.jpg');">
+            <div class="left-section-content">
+                <p class="tagline">ONE PLATFORM FOR OIL COLLECTION</p>
+                <h1 class="main-heading">Efficiency, Transparency,<br>Sustainability</h1>
+                <button class="join-btn">Join the Kolek Community</button>
+            </div>
+        </div>
+
+        <!-- Right section with login form -->
+        <div class="right-section">
+            <div class="login-container">
+                <!-- Logo section -->
+                <div class="logo-section">
+                    <div class="logo">
+                        <img src="/Kolek Logo.png" alt="Kolek Logo">
+                    </div>
+                    <div class="logo-text">Kolek</div>
+                    <div class="logo-subtext">Dashboard Log In</div>
+                </div>
+
+                <!-- Login form -->
+                <form id="loginForm">
+                    <!-- Admin ID input -->
+                    <div class="form-group">
+                        <label for="adminId">Admin ID</label>
+                        <input 
+                            type="text" 
+                            id="adminId" 
+                            name="adminId" 
+                            placeholder="29549290"
+                            required
+                        >
+                    </div>
+
+                    <!-- Password input -->
+                    <div class="form-group">
+                        <label for="password">Enter Password</label>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            placeholder="••••••••••"
+                            required
+                        >
+                        <span class="password-toggle" onclick="togglePassword()" title="Show/Hide password">
+                            👁️
+                        </span>
+                    </div>
+
+                    <!-- Forgot password link -->
+                    <div class="forgot-password">
+                        <a href="#forgot">Forgot password?</a>
+                    </div>
+
+                    <!-- Login button -->
+                    <div class="login-btn-container">
+                        <button type="submit" class="login-btn"></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>

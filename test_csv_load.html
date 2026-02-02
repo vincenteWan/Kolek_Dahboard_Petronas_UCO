@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSV Test</title>
+</head>
+<body>
+    <h1>CSV Data Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        function parseCSV(text) {
+            const lines = [];
+            let currentLine = [];
+            let currentField = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const nextChar = text[i + 1];
+                
+                if (char === '"') {
+                    if (inQuotes && nextChar === '"') {
+                        currentField += '"';
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    currentLine.push(currentField);
+                    currentField = '';
+                } else if ((char === '\n' || char === '\r') && !inQuotes) {
+                    if (char === '\r' && nextChar === '\n') {
+                        i++;
+                    }
+                    if (currentField || currentLine.length > 0) {
+                        currentLine.push(currentField);
+                        lines.push(currentLine);
+                        currentLine = [];
+                        currentField = '';
+                    }
+                } else {
+                    currentField += char;
+                }
+            }
+            
+            if (currentField || currentLine.length > 0) {
+                currentLine.push(currentField);
+                lines.push(currentLine);
+            }
+            
+            return lines;
+        }
+
+        Promise.all([
+            fetch('Fnl-Collector.csv').then(r => r.text()),
+            fetch('Fnl-Application.csv').then(r => r.text())
+        ]).then(([collectorText, applicantText]) => {
+            const collectorData = parseCSV(collectorText.trim());
+            const applicantData = parseCSV(applicantText.trim());
+            
+            document.getElementById('results').innerHTML = `
+                <p><strong>Collector CSV:</strong> ${collectorData.length - 1} records (including header: ${collectorData.length} lines)</p>
+                <p><strong>Applicant CSV:</strong> ${applicantData.length - 1} records (including header: ${applicantData.length} lines)</p>
+                <p><strong>Collector pages needed:</strong> ${Math.ceil((collectorData.length - 1) / 15)}</p>
+                <p><strong>Applicant pages needed:</strong> ${Math.ceil((applicantData.length - 1) / 15)}</p>
+            `;
+        });
+    </script>
+</body>
+</html>
