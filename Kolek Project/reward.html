@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reward Management - Kolek Dashboard</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="reward.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-section">
+                <img src="Kolek Logo.png" alt="Kolek Logo" class="logo">
+                <span class="logo-text">Kolek</span>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="nav-section">
+                    <h3 class="nav-title">General</h3>
+                    <ul>
+                        <li><a href="dashboard.html" class="nav-item" data-page="dashboard"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                        <li><a href="dashboard.html" class="nav-item" data-page="collection"><i class="fas fa-droplet"></i> Collection</a></li>
+                        <li><a href="dashboard.html" class="nav-item" data-page="station"><i class="fas fa-gas-pump"></i> Station</a></li>
+                        <li><a href="dashboard.html" class="nav-item" data-page="collector"><i class="fas fa-user-tie"></i> Collector</a></li>
+                        <li><a href="dashboard.html" class="nav-item" data-page="applicant"><i class="fas fa-file-alt"></i> Applicant</a></li>
+                        <li><a href="dashboard.html" class="nav-item" data-page="household"><i class="fas fa-home"></i> Household</a></li>
+                        <li><a href="#" class="nav-item active" data-page="reward"><i class="fas fa-gift"></i> Reward</a></li>
+                        <li><a href="dashboard.html" class="nav-item" data-page="report"><i class="fas fa-file-chart-line"></i> Report</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-title">Support</h3>
+                    <ul>
+                        <li><a href="dashboard.html" class="nav-item" data-page="ai-assist"><i class="fas fa-robot"></i> AI Assist</a></li>
+                        <li><a href="dashboard.html" class="nav-item" data-page="settings"><i class="fas fa-gear"></i> Setting</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <h1>Reward Management</h1>
+                </div>
+                <div class="header-right">
+                    <div class="date-display">
+                        <i class="fas fa-calendar"></i>
+                        <span id="current-date">Today, 27 Jan 2026</span>
+                    </div>
+                    <button class="btn btn-secondary" id="refresh-btn">
+                        <i class="fas fa-rotate-right"></i> Refresh
+                    </button>
+                    <button class="btn btn-secondary" id="export-btn">
+                        <i class="fas fa-download"></i> Export PDF
+                    </button>
+                    <div class="user-profile">
+                        <img id="header-user-avatar" src="https://via.placeholder.com/40" alt="User" class="user-avatar" title="View / Edit profile">
+                    </div>
+                    <button class="btn btn-secondary" id="logout-btn" title="Log out">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </header>
+
+            <!-- Reward Management Page -->
+            <div class="content" id="reward-content" style="display: block;">
+                <div class="page-header">
+                    <h2>Reward Management</h2>
+                </div>
+
+                <!-- Tabs Navigation -->
+                <div class="reward-tabs">
+                    <button class="tab-btn active" data-tab="rewards-tab" onclick="switchTab('rewards-tab')">
+                        <i class="fas fa-gift"></i> Rewards
+                    </button>
+                    <button class="tab-btn" data-tab="redemption-tab" onclick="switchTab('redemption-tab')">
+                        <i class="fas fa-history"></i> Redemption History
+                    </button>
+                </div>
+
+                <!-- REWARDS TAB -->
+                <div id="rewards-tab" class="tab-content active">
+                    <div class="page-controls">
+                        <input type="search" id="reward-search" class="search-input" placeholder="Search by reward name or ID..">
+                        <div class="controls-right">
+                            <select id="reward-category-filter" class="filter-select">
+                                <option value="">All Categories</option>
+                                <option value="Food & Beverages">Food & Beverages</option>
+                                <option value="Shopping & eCommerce">Shopping & eCommerce</option>
+                            </select>
+                            <button class="btn" id="reward-filter-sort"><i class="fas fa-filter"></i> Filter & Sort</button>
+                            <button class="btn btn-secondary" id="reward-export"><i class="fas fa-file-export"></i> Export PDF</button>
+                            <button class="btn btn-primary" id="reward-add-new"><i class="fas fa-plus"></i> Add New Reward</button>
+                        </div>
+                    </div>
+
+                    <!-- Rewards Table -->
+                    <div class="table-wrapper">
+                        <table class="data-table reward-table" id="reward-table">
+                            <thead>
+                                <tr>
+                                    <th>Reward ID</th>
+                                    <th>Reward Name</th>
+                                    <th>Category</th>
+                                    <th>Merchant</th>
+                                    <th>Value (RM)</th>
+                                    <th>Points Required</th>
+                                    <th>Expiry Date</th>
+                                    <th>Admin ID</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reward-tbody">
+                                <!-- Rewards will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-footer">
+                        <div class="entries-info" id="reward-entries-info">Showing 0 to 0 of 0 entries</div>
+                        <div class="pagination" id="reward-pagination">
+                            <!-- Pagination buttons inserted by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- REDEMPTION HISTORY TAB -->
+                <div id="redemption-tab" class="tab-content">
+                    <div class="page-controls">
+                        <input type="search" id="redemption-search" class="search-input" placeholder="Search by redemption ID, promo code, or household ID..">
+                        <div class="controls-right">
+                            <select id="redemption-status-filter" class="filter-select">
+                                <option value="">All Status</option>
+                                <option value="Redeemed">Redeemed</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                            <button class="btn btn-secondary" id="redemption-export"><i class="fas fa-file-export"></i> Export PDF</button>
+                        </div>
+                    </div>
+
+                    <!-- Redemption Table -->
+                    <div class="table-wrapper">
+                        <table class="data-table redemption-table" id="redemption-table">
+                            <thead>
+                                <tr>
+                                    <th>Redemption ID</th>
+                                    <th>Date & Time</th>
+                                    <th>Reward ID</th>
+                                    <th>Household ID</th>
+                                    <th>Promo Code</th>
+                                    <th>Points Deducted</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="redemption-tbody">
+                                <!-- Redemption records will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-footer">
+                        <div class="entries-info" id="redemption-entries-info">Showing 0 to 0 of 0 entries</div>
+                        <div class="pagination" id="redemption-pagination">
+                            <!-- Pagination buttons inserted by JS -->
+                        </div>
+                    </div>
+                </div>
+
+        </main>
+    </div>
+
+    <!-- View Reward Modal -->
+    <div id="view-reward-modal" class="reward-modal">
+        <div class="reward-modal-content">
+            <div class="reward-modal-header">
+                <h2>Reward Details</h2>
+                <button class="reward-modal-close" onclick="closeViewModal()">&times;</button>
+            </div>
+            <div class="reward-modal-body">
+                <div class="reward-detail-grid">
+                    <div class="detail-item">
+                        <label>Reward ID</label>
+                        <p id="view-reward-id" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Reward Name</label>
+                        <p id="view-reward-name" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Category</label>
+                        <p id="view-reward-category" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Merchant</label>
+                        <p id="view-reward-merchant" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Value (RM)</label>
+                        <p id="view-reward-value" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Points Required</label>
+                        <p id="view-reward-points" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Expiry Date</label>
+                        <p id="view-reward-expiry" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Admin ID</label>
+                        <p id="view-reward-admin" class="detail-value">-</p>
+                    </div>
+                </div>
+            </div>
+            <div class="reward-modal-footer">
+                <button class="btn btn-secondary" onclick="closeViewModal()">Close</button>
+                <button class="btn btn-primary" onclick="openEditModalFromView()">Edit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Reward Modal -->
+    <div id="edit-reward-modal" class="reward-modal">
+        <div class="reward-modal-content">
+            <div class="reward-modal-header">
+                <h2>Edit Reward</h2>
+                <button class="reward-modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="reward-modal-body">
+                <form id="edit-reward-form" class="reward-form">
+                    <div class="form-group">
+                        <label for="edit-reward-id">Reward ID *</label>
+                        <input type="text" id="edit-reward-id" class="form-input" placeholder="e.g., R-001" required readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-reward-name">Reward Name *</label>
+                        <input type="text" id="edit-reward-name" class="form-input" placeholder="e.g., Store RM10 Voucher" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-reward-category">Category *</label>
+                            <select id="edit-reward-category" class="form-input" required>
+                                <option value="">Select Category</option>
+                                <option value="Food & Beverages">Food & Beverages</option>
+                                <option value="Shopping & eCommerce">Shopping & eCommerce</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-reward-merchant">Merchant *</label>
+                            <input type="text" id="edit-reward-merchant" class="form-input" placeholder="e.g., Store Name" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-reward-value">Value (RM) *</label>
+                            <input type="number" id="edit-reward-value" class="form-input" step="0.01" min="0" placeholder="e.g., 10.00" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-reward-points">Points Required *</label>
+                            <input type="number" id="edit-reward-points" class="form-input" min="0" placeholder="e.g., 250" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-reward-expiry">Expiry Date *</label>
+                            <input type="date" id="edit-reward-expiry" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-reward-admin">Admin ID *</label>
+                            <input type="text" id="edit-reward-admin" class="form-input" placeholder="e.g., D-001" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="reward-modal-footer">
+                <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveRewardChanges()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Redemption Modal -->
+    <div id="view-redemption-modal" class="reward-modal">
+        <div class="reward-modal-content">
+            <div class="reward-modal-header">
+                <h2>Redemption Details</h2>
+                <button class="reward-modal-close" onclick="closeRedemptionModal()">&times;</button>
+            </div>
+            <div class="reward-modal-body">
+                <div class="reward-detail-grid">
+                    <div class="detail-item">
+                        <label>Redemption ID</label>
+                        <p id="view-redemption-id" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Status</label>
+                        <p id="view-redemption-status" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Date & Time</label>
+                        <p id="view-redemption-datetime" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Reward ID</label>
+                        <p id="view-redemption-reward-id" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Household ID</label>
+                        <p id="view-redemption-household-id" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Points Deducted</label>
+                        <p id="view-redemption-points" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item full-width">
+                        <label>Promo Code</label>
+                        <p id="view-redemption-promo" class="detail-value">-</p>
+                    </div>
+                </div>
+            </div>
+            <div class="reward-modal-footer">
+                <button class="btn btn-secondary" onclick="closeRedemptionModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add New Reward Modal -->
+    <div id="add-reward-modal" class="reward-modal">
+        <div class="reward-modal-content">
+            <div class="reward-modal-header">
+                <h2>Add New Reward</h2>
+                <button class="reward-modal-close" onclick="closeAddRewardModal()">&times;</button>
+            </div>
+            <div class="reward-modal-body">
+                <form id="add-reward-form" class="reward-form">
+                    <div class="form-group">
+                        <label for="new-reward-id">Reward ID *</label>
+                        <input type="text" id="new-reward-id" class="form-input" placeholder="e.g., R-051" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-reward-name">Reward Name *</label>
+                        <input type="text" id="new-reward-name" class="form-input" placeholder="e.g., Store RM10 Voucher" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="new-reward-category">Category *</label>
+                            <select id="new-reward-category" class="form-input" required>
+                                <option value="">Select Category</option>
+                                <option value="Food & Beverages">Food & Beverages</option>
+                                <option value="Shopping & eCommerce">Shopping & eCommerce</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-reward-merchant">Merchant *</label>
+                            <input type="text" id="new-reward-merchant" class="form-input" placeholder="e.g., Store Name" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="new-reward-value">Value (RM) *</label>
+                            <input type="number" id="new-reward-value" class="form-input" step="0.01" min="0" placeholder="e.g., 10.00" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-reward-points">Points Required *</label>
+                            <input type="number" id="new-reward-points" class="form-input" min="0" placeholder="e.g., 250" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="new-reward-expiry">Expiry Date *</label>
+                            <input type="date" id="new-reward-expiry" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-reward-admin">Admin ID *</label>
+                            <input type="text" id="new-reward-admin" class="form-input" placeholder="e.g., D-001" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="reward-modal-footer">
+                <button class="btn btn-secondary" onclick="closeAddRewardModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveNewReward()">Add Reward</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <!-- Export libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="apiKey.js"></script>
+    <script src="main.js"></script>
+    <script src="reward.js"></script>
+</body>
+</html>

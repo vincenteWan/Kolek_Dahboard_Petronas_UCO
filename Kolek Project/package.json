@@ -1,0 +1,28 @@
+{
+  "name": "kolek-dashboard",
+  "version": "1.0.0",
+  "description": "Kolek Dashboard with CSV to Database integration",
+  "main": "server.js",
+  "scripts": {
+    "server": "node server.js",
+    "start": "node server.js",
+    "load-csv": "node loadCSV_fixed.js",
+    "hash-admin-passwords": "node hash_admin_passwords.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.4",
+    "cors": "^2.8.5",
+    "csv-parser": "^3.0.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.2",
+    "jspdf": "^4.1.0",
+    "mysql2": "^3.6.0",
+    "nodemailer": "^6.9.7",
+    "resend": "^4.1.2",
+    "xlsx": "^0.18.5"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

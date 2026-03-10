@@ -1,0 +1,1936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kolek Dashboard</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="reward.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-section">
+                <img src="Kolek Logo.png" alt="Kolek Logo" class="logo">
+                <span class="logo-text">Kolek</span>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="nav-section">
+                    <h3 class="nav-title">General</h3>
+                    <ul>
+                        <li><a href="#" class="nav-item active" data-page="dashboard"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                        <li><a href="#" class="nav-item" data-page="collection"><i class="fas fa-droplet"></i> Collection</a></li>
+                        <li><a href="#" class="nav-item" data-page="station"><i class="fas fa-gas-pump"></i> Station</a></li>
+                        <li><a href="#" class="nav-item" data-page="collector"><i class="fas fa-user-tie"></i> Collector</a></li>
+                        <li><a href="#" class="nav-item" data-page="applicant"><i class="fas fa-file-alt"></i> Applicant</a></li>
+                        <li><a href="#" class="nav-item" data-page="household"><i class="fas fa-home"></i> Household</a></li>
+                        <li><a href="#" class="nav-item" data-page="reward"><i class="fas fa-gift"></i> Reward</a></li>
+                        <li><a href="#" class="nav-item" data-page="report"><i class="fas fa-chart-bar"></i> Report</a></li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-title">Support</h3>
+                    <ul>
+                        <li><a href="#" class="nav-item" data-page="ai-assist"><i class="fas fa-robot"></i> AI Assist</a></li>
+                        <li><a href="#" class="nav-item" data-page="settings"><i class="fas fa-gear"></i> Setting</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <h1>Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <div class="date-display">
+                        <i class="fas fa-calendar"></i>
+                        <span id="current-date">Today, 20 Oct 2025</span>
+                    </div>
+                    <button class="btn btn-secondary" id="refresh-btn">
+                        <i class="fas fa-rotate-right"></i> Refresh
+                    </button>
+                    <button class="btn btn-secondary" id="export-btn">
+                        <i class="fas fa-download"></i> Export PDF
+                    </button>
+                    <div class="user-profile">
+                        <img id="header-user-avatar" src="https://via.placeholder.com/40" alt="User" class="user-avatar" title="View / Edit profile">
+                    </div>
+                    <button class="btn btn-secondary" id="logout-btn" title="Log out">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="content" id="dashboard-content">
+                <!-- KPI Cards -->
+                <section class="kpi-section">
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <h3>Total UCO Collected</h3>
+                        </div>
+                        <div class="kpi-value">0 <span class="unit">kg</span></div>
+                        <div class="kpi-meta">
+                            <span class="trend-up"><i class="fas fa-arrow-up"></i> +35 kg</span>
+                            <span class="meta-text">Total UCO collected increased by 35kg this month</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <h3>Total CO2 Saved</h3>
+                        </div>
+                        <div class="kpi-value">850 <span class="unit">kg</span></div>
+                        <div class="kpi-meta">
+                            <span class="trend-up"><i class="fas fa-arrow-up"></i> +30kg</span>
+                            <span class="meta-text">Total CO2 saved increased by 30kg this month</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <h3>Total Routes Created</h3>
+                        </div>
+                        <div class="kpi-value">50 <span class="unit">Routes</span></div>
+                        <div class="kpi-meta">
+                            <span class="trend-up"><i class="fas fa-arrow-up"></i> +10</span>
+                            <span class="meta-text">Total routes created increased by 10 this month</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <h3>Total Households</h3>
+                        </div>
+                        <div class="kpi-value">120 <span class="unit">Households</span></div>
+                        <div class="kpi-meta">
+                            <span class="trend-up"><i class="fas fa-arrow-up"></i> +12</span>
+                            <span class="meta-text">Total household user increased by 12 this month</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Charts Section -->
+                <section class="charts-section">
+                    <!-- UCO Collection Trend Chart -->
+                    <div class="chart-container chart-maximizable" id="uco-chart-card">
+                        <div class="chart-header">
+                            <h2>Weekly UCO Collection Trend</h2>
+                            <div class="chart-controls">
+                                <select id="year-select" class="year-select">
+                                    <option value="2026">2026</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2024">2024</option>
+                                    <option value="2023">2023</option>
+                                </select>
+                                <select id="uco-month-select" class="year-select">
+                                    <option value="all">All months</option>
+                                    <option value="1">Jan</option>
+                                    <option value="2">Feb</option>
+                                    <option value="3">Mar</option>
+                                    <option value="4">Apr</option>
+                                    <option value="5">May</option>
+                                    <option value="6">Jun</option>
+                                    <option value="7">Jul</option>
+                                    <option value="8">Aug</option>
+                                    <option value="9">Sept</option>
+                                    <option value="10">Oct</option>
+                                    <option value="11">Nov</option>
+                                    <option value="12">Dec</option>
+                                </select>
+                                <select id="uco-week-select" class="year-select">
+                                    <option value="all">All weeks</option>
+                                </select>
+                                <button class="chart-maximize-btn" type="button" data-target="uco-chart-card" data-chart="ucoChart" aria-label="Maximize chart" title="Maximize chart">
+                                    <i class="fas fa-expand"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart">
+                            <canvas id="ucoChart"></canvas>
+                        </div>
+                        <div class="chart-tooltip" id="chart-tooltip">
+                            <span id="tooltip-month">July 2025</span>
+                            <span id="tooltip-value">65.7 litres</span>
+                        </div>
+                    </div>
+
+                    <!-- Top 5 Rewards Leaders -->
+                    <div class="leaderboard-container">
+                        <div class="leaderboard-header">
+                            <h2>Top 5 Rewards Leaders</h2>
+                            <div class="leaderboard-badge"><i class="fas fa-trophy"></i></div>
+                        </div>
+                        <table class="leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Household ID</th>
+                                    <th>Points</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="rank-badge rank-1">1</span></td>
+                                    <td>#H-100</td>
+                                    <td>20,630</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="rank-badge rank-2">2</span></td>
+                                    <td>#H-095</td>
+                                    <td>16,451</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="rank-badge rank-3">3</span></td>
+                                    <td>#H-098</td>
+                                    <td>12,300</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="rank-badge rank-4">4</span></td>
+                                    <td>#H-098</td>
+                                    <td>11,750</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="rank-badge rank-5">5</span></td>
+                                    <td>#H-094</td>
+                                    <td>10,370</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Awareness & Collection by Area -->
+                <section class="analytics-section">
+                    <!-- Awareness Overview Table -->
+                    <div class="table-container">
+                        <div class="table-header">
+                            <h2>Awareness Overview</h2>
+                            <div class="awareness-controls">
+                                <select id="awareness-metric-filter" class="filter-select" aria-label="Awareness metric">
+                                    <option value="views">Views</option>
+                                    <option value="watchTime">Average Watch Time</option>
+                                    <option value="clickRate">Click Rate</option>
+                                    <option value="totalShare">Total Share</option>
+                                </select>
+                                <select id="awareness-sort-order" class="filter-select" aria-label="Sort order">
+                                    <option value="asc">Least to most</option>
+                                    <option value="desc">Most to least</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-scroll-wrapper">
+                            <table class="data-table" id="awareness-table">
+                                <thead>
+                                    <tr>
+                                        <th>Campaign ID</th>
+                                        <th>Campaign Name</th>
+                                        <th>Views</th>
+                                        <th>Average Watch Time</th>
+                                        <th>Click Rate</th>
+                                        <th>Total Share</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="awareness-tbody">
+                                <tr>
+                                    <td>#CC-005</td>
+                                    <td>UCO Challenge</td>
+                                    <td>85</td>
+                                    <td>32 seconds</td>
+                                    <td>20%</td>
+                                    <td><span class="trend-up">85% <i class="fas fa-arrow-up"></i> +5%</span></td>
+                                </tr>
+                                <tr>
+                                    <td>#CC-004</td>
+                                    <td>Go Green Tips</td>
+                                    <td>90</td>
+                                    <td>35 seconds</td>
+                                    <td>12%</td>
+                                    <td><span class="trend-up">72% <i class="fas fa-arrow-up"></i> +2%</span></td>
+                                </tr>
+                                <tr>
+                                    <td>#CC-003</td>
+                                    <td>Reuse Oil Tips</td>
+                                    <td>87</td>
+                                    <td>40 seconds</td>
+                                    <td>8%</td>
+                                    <td><span class="trend-down">65% <i class="fas fa-arrow-down"></i> -5%</span></td>
+                                </tr>
+                                <tr>
+                                    <td>#CC-002</td>
+                                    <td>Oil Disposal Tips</td>
+                                    <td>98</td>
+                                    <td>43 seconds</td>
+                                    <td>10%</td>
+                                    <td><span class="trend-up">70% <i class="fas fa-arrow-up"></i> +9%</span></td>
+                                </tr>
+                                <tr>
+                                    <td>#CC-001</td>
+                                    <td>Kolek Rewards</td>
+                                    <td>112</td>
+                                    <td>21 seconds</td>
+                                    <td>18%</td>
+                                    <td><span class="trend-up">82% <i class="fas fa-arrow-up"></i> +3%</span></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- UCO Collected by Area Pie Chart -->
+                    <div class="pie-chart-container chart-maximizable" id="area-chart-card">
+                        <div class="pie-header">
+                            <h2>UCO Collected by Area</h2>
+                            <button class="chart-maximize-btn" type="button" data-target="area-chart-card" data-chart="areaChart" aria-label="Maximize chart" title="Maximize chart">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                        <div class="pie-chart">
+                            <canvas id="areaChart"></canvas>
+                        </div>
+                        <div class="pie-legend">
+                            <div class="legend-item">
+                                <span class="legend-color" style="background-color: #4CAF50;"></span>
+                                <span>Kuala Lumpur</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background-color: #7CB342;"></span>
+                                <span>Ampang</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background-color: #9CCC65;"></span>
+                                <span>Shah Alam</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background-color: #C5E1A5;"></span>
+                                <span>Cheras</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Placeholder for other pages -->
+            <div class="content" id="collection-content" style="display: none;">
+                <div class="page-header">
+                    <h2>Collection</h2>
+                    <div class="page-controls">
+                        <input type="search" id="collection-search" class="search-input" placeholder="Search something..">
+                        
+                        <div class="controls-right">
+                            <div class="small-pill" id="collection-date">01 Oct 25 - 31 Oct 25 <i class="fas fa-chevron-down" style="margin-left:8px;color:#7b7b7b"></i></div>
+                            <select id="collection-filter-select" class="small-select filter-dropdown">
+                                <option value="all">All Status</option>
+                                <option value="completed">Completed</option>
+                                <option value="ongoing">Ongoing</option>
+                                <option value="assigned">Assigned</option>
+                                <option value="pending">Pending</option>
+                            </select>
+                            <button class="btn" id="collection-filter-sort"><i class="fas fa-filter"></i> Filter & Sort</button>
+                            <button class="btn" id="collection-refresh" aria-label="Refresh" title="Refresh"><i class="fas fa-sync" style="margin-right:8px"></i> Refresh</button>
+                            <button class="btn btn-primary" id="collection-export"><i class="fas fa-file-export"></i> Export PDF</button>
+                        </div>
+                    </div>
+                    <div class="pending-badge" id="collection-pending"><span class="pending-count">2</span> Pending Collection <span class="badge-cta"><i class="fas fa-arrow-right"></i></span></div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="data-table collection-table">
+                        <thead>
+                            <tr>
+                                <th>Collection ID</th>
+                                <th>Collection Date</th>
+                                <th>Collection Address</th>
+                                <th>Request Time</th>
+                                <th>Collected Time</th>
+                                <th class="status-col">Collection Status</th>
+                                <th>Points Earned</th>
+                                <th>Credit Earned</th>
+                                <th>Household ID</th>
+                                <th>Collector ID</th>
+                                <th>Station ID</th>
+                                <th class="actions-col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-footer">
+                    <div class="entries-info" id="collection-entries-info">Showing 0 to 0 of 0 entries</div>
+                    <div class="pagination">
+                        <button class="page-btn" id="collection-prev-btn">Prev</button>
+                        <div class="page-numbers" id="collection-page-numbers"></div>
+                        <button class="page-btn next" id="collection-next-btn">Next</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content" id="station-content" style="display: none;">
+                <div class="page-header">
+                    <h2>Station</h2>
+                    <div class="page-controls">
+                        <input type="search" id="station-search" class="search-input" placeholder="Search something..">
+                        <select id="station-filter-select" class="small-select filter-dropdown">
+                            <option value="all">All Status</option>
+                            <option value="good">Good Condition</option>
+                            <option value="warning">Nearly Full</option>
+                            <option value="danger">Full Bin</option>
+                        </select>
+                        <button class="btn" id="filter-sort-btn"><i class="fas fa-filter"></i> Filter & Sort</button>
+                        <button class="btn" id="station-refresh" aria-label="Refresh" title="Refresh"><i class="fas fa-sync" style="margin-right:8px"></i> Refresh</button>
+                        <button class="btn btn-secondary" id="station-export"><i class="fas fa-file-export"></i> Export PDF</button>
+                        <button class="btn btn-primary" id="station-add"><i class="fas fa-plus"></i> Add Station</button>
+                        <button class="btn btn-danger" id="station-delete"><i class="fas fa-trash"></i> Delete Station</button>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="data-table station-table" id="station-table">
+                        <thead>
+                                <tr>
+                                <th>Station ID</th>
+                                <th>Station Name</th>
+                                <th>Map</th>
+                                <th>Fill Level</th>
+                                <th>Fill Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- rows will be rendered by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-footer">
+                    <div class="entries-info" id="station-entries-info">Showing 0 to 0 of 0 entries</div>
+                    <div class="pagination" id="station-pagination">
+                        <!-- pagination buttons inserted by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Station Modal -->
+            <div class="modal" id="station-add-modal" role="dialog" aria-modal="true" aria-label="Add station">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Add Station</h2>
+                        <button class="modal-close" id="station-add-close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="station-add-form" class="form">
+                            <div class="form-group">
+                                <label for="station-add-id">Station ID</label>
+                                <input type="text" id="station-add-id" required placeholder="e.g. S-101" readonly aria-readonly="true">
+                            </div>
+                            <div class="form-group">
+                                <label for="station-add-name">Station Name</label>
+                                <input type="text" id="station-add-name" required placeholder="Station name">
+                            </div>
+                            <div class="form-group">
+                                <label for="station-add-location">Station Location</label>
+                                <input type="text" id="station-add-location" required placeholder="Station address/location">
+                            </div>
+                            <div class="form-group">
+                                <label for="station-add-fill">Fill Level (%)</label>
+                                <input type="number" id="station-add-fill" required min="0" max="100" step="0.1" placeholder="0-100">
+                            </div>
+                            <div class="form-group">
+                                <label for="station-add-status">Fill Status</label>
+                                <select id="station-add-status" required>
+                                    <option value="Good Condition">Good Condition</option>
+                                    <option value="Nearly Full">Nearly Full</option>
+                                    <option value="Full Bin">Full Bin</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="station-add-hours">Operation Hour</label>
+                                <input type="text" id="station-add-hours" required placeholder="e.g. 8:00 AM - 10:00 PM">
+                            </div>
+                            <div class="form-group">
+                                <label for="station-add-admin">Admin ID</label>
+                                <input type="text" id="station-add-admin" required placeholder="Admin ID" readonly aria-readonly="true">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" id="station-add-cancel">Cancel</button>
+                        <button class="btn btn-primary" id="station-add-save">Save Station</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delete Station Modal -->
+            <div class="modal" id="station-delete-modal" role="dialog" aria-modal="true" aria-label="Delete station">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Delete Station</h2>
+                        <button class="modal-close" id="station-delete-close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="station-delete-form" class="form">
+                            <div class="form-group">
+                                <label for="station-delete-select">Select Station</label>
+                                <select id="station-delete-select" required></select>
+                            </div>
+                            <div class="form-group">
+                                <div class="meta-text">This will permanently delete the selected station from the database.</div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" id="station-delete-cancel">Cancel</button>
+                        <button class="btn btn-primary" id="station-delete-confirm">Delete Station</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collector Assignment Modal -->
+            <div class="modal" id="collector-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Assign Collector</h2>
+                        <button class="modal-close" id="modal-close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="assignment-info">
+                            <p><strong>Station:</strong> <span id="modal-station-name"></span></p>
+                            <p><strong>Station ID:</strong> <span id="modal-station-id"></span></p>
+                            <p><strong>Current Fill Level:</strong> <span id="modal-fill-level"></span></p>
+                        </div>
+                        <div class="collectors-section">
+                            <h3>Available Collectors</h3>
+                            <div class="collectors-list" id="collectors-list">
+                                <!-- Collector options will be inserted by JS -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" id="modal-cancel">Cancel</button>
+                        <button class="btn btn-primary" id="modal-assign">Assign Collector</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Collection Modal (opened from Empty Bin action) -->
+            <div class="modal" id="pending-collection-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Pending Collection</h2>
+                        <button class="modal-close" id="pending-collection-close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="pending-collection-controls">
+                            <input id="pending-search" type="text" class="search-input" placeholder="Search something...">
+                            <div class="control-right">
+                                <span id="pending-date-range" class="date-range">01 Oct 25 - 31 Oct 25</span>
+                                <button class="btn-filter">
+                                    <i class="fas fa-sliders-h"></i> Filter & Sort
+                                </button>
+                                <button class="btn-export" id="pending-export">
+                                    <i class="fas fa-download"></i> Export PDF
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="data-table pending-collection-table">
+                                <thead>
+                                    <tr>
+                                        <th>Collection ID</th>
+                                        <th>Household ID</th>
+                                        <th>Collection Address</th>
+                                        <th>Time Requested</th>
+                                        <th>Assign Collector</th>
+                                        <th>Suggestions</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pending-collection-tbody">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="pending-entries-info" class="entries-info">Showing 1 to 1 of 1 entries</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-primary" id="pending-done">Done</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KAIYEAN AI MODEL -->
+            <div class="modal" id="aiSuggestionModal">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                    <h2>AI Route Suggestion</h2>
+                    <button class="modal-close"
+                        onclick="document.getElementById('aiSuggestionModal').classList.remove('show')">
+                        ×
+                    </button>
+                    </div>
+
+                    <div class="modal-body">
+                        <p>
+                        The AI recommends assigning the nearest collector based on location and workload.
+                        </p>
+
+                        <p id="aiSuggestionText" style="margin-top:15px;font-weight:600;color:#0E6B4D;">
+                        Loading suggestion...
+                        </p>
+                    </div>
+
+                    <div class="modal-footer">
+                    <button class="btn btn-primary"
+                        onclick="document.getElementById('aiSuggestionModal').style.display='none'">
+                        Close
+                    </button>
+                    </div>
+
+                </div>
+                </div>
+
+            <!-- Applicant Details Modal -->
+            <div class="modal" id="applicant-details-modal">
+                <div class="modal-content" tabindex="-1">
+                    <div class="modal-header">
+                        <h2>Application Details</h2>
+                        <button class="modal-close" id="applicant-details-close">&times;</button>
+                    </div>
+                    <div class="modal-body" id="applicant-details-body">
+                        <!-- details injected by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Applicant IC Details Modal -->
+            <div class="modal" id="applicant-ic-modal" role="dialog" aria-modal="true" aria-label="IC details">
+                <div class="modal-content" tabindex="-1">
+                    <div class="modal-header">
+                        <h2>IC Details</h2>
+                        <button class="modal-close" id="applicant-ic-close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="ic-empty-state" id="applicant-ic-empty">No IC image available.</div>
+                        <img class="ic-image-preview" id="applicant-ic-image" src="" alt="Applicant IC" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collector Details Modal (view details) -->
+            <div class="modal" id="collector-details-modal" role="dialog" aria-modal="true" aria-label="Collector details">
+                <div class="modal-content collector-details-card" tabindex="-1">
+                    <div class="modal-header">
+                        <h2>Extend View Details</h2>
+                        <button class="modal-close" id="collector-details-close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="collector-top">
+                            <div class="collector-avatar-large">
+                                <img src="https://via.placeholder.com/84" alt="collector" style="width:84px;height:84px;border-radius:999px;object-fit:cover">
+                            </div>
+                            <div class="collector-title">
+                                <div class="collector-name-large">Mohd. Zafir Ali <span class="collector-id">#C-024</span></div>
+                                <div class="collector-role">Collector In Charge</div>
+                            </div>
+                            <div class="collector-actions">
+                                <button class="btn btn-primary" id="add-route-btn"><i class="fas fa-plus"></i> Add New Route</button>
+                                <button class="btn btn-secondary" id="details-export"><i class="fas fa-file-export"></i> Export PDF</button>
+                            </div>
+                        </div>
+
+                        <div class="table-wrapper details-table-wrapper" style="margin-top:18px">
+                            <table class="data-table collector-details-table">
+                                <thead>
+                                    <tr>
+                                        <th>Collection ID</th>
+                                        <th>Source ID</th>
+                                        <th>Location</th>
+                                        <th>Time Requested</th>
+                                        <th>Time Collected</th>
+                                        <th>UCO Collected</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>#CR-050</td>
+                                        <td>#H-059</td>
+                                        <td>2, Jalan SS15, Subang Jaya</td>
+                                        <td>4:15 PM</td>
+                                        <td>N/A</td>
+                                        <td>N/A</td>
+                                        <td class="status assigned">Assigned</td>
+                                    </tr>
+                                    <tr>
+                                        <td>#CR-049</td>
+                                        <td>#H-054</td>
+                                        <td>9, Jalan SS18, Subang Jaya</td>
+                                        <td>3:30 PM</td>
+                                        <td>N/A</td>
+                                        <td>N/A</td>
+                                        <td class="status assigned">Assigned</td>
+                                    </tr>
+                                    <tr>
+                                        <td>#CR-048</td>
+                                        <td>#H-060</td>
+                                        <td>1, Jalan Akuatik 13/7, Shah Alam</td>
+                                        <td>2:45 PM</td>
+                                        <td>N/A</td>
+                                        <td>N/A</td>
+                                        <td class="status ongoing">Ongoing</td>
+                                    </tr>
+                                    <tr>
+                                        <td>#CR-047</td>
+                                        <td>#H-058</td>
+                                        <td>1, Jalan SS3/70, Petaling Jaya</td>
+                                        <td>1:30 PM</td>
+                                        <td>1:30 PM</td>
+                                        <td>12 kg</td>
+                                        <td class="status completed">Completed</td>
+                                    </tr>
+                                    <tr>
+                                        <td>#CR-046</td>
+                                        <td>#H-055</td>
+                                        <td>51, Jalan SS2/3A, Petaling Jaya</td>
+                                        <td>12:30 PM</td>
+                                        <td>12:30 PM</td>
+                                        <td>12 kg</td>
+                                        <td class="status completed">Completed</td>
+                                    </tr>
+                                    <tr>
+                                        <td>#CR-045</td>
+                                        <td>#H-053</td>
+                                        <td>9, Jalan SS12, Taman Megah</td>
+                                        <td>11:50 AM</td>
+                                        <td>11:52 AM</td>
+                                        <td>13 kg</td>
+                                        <td class="status completed">Completed</td>
+                                    </tr>
+                                    <tr>
+                                        <td>#CR-044</td>
+                                        <td>#H-056</td>
+                                        <td>2, Jalan SS3/70, Petaling Jaya</td>
+                                        <td>11:30 AM</td>
+                                        <td>11:31 AM</td>
+                                        <td>14 kg</td>
+                                        <td class="status completed">Completed</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Report Details Modal (Accident / generic) -->
+            <div class="modal" id="report-details-modal" role="dialog" aria-modal="true" aria-label="Report details">
+                <div class="modal-content report-details-card" tabindex="-1">
+                    <div class="modal-header">
+                        <h2>Accident Report</h2>
+                        <button class="modal-close" id="report-details-close">&times;</button>
+                    </div>
+                    <div class="report-top-bar">
+                        <div class="report-top-left">
+                            <div class="report-id"><small>Report ID</small><div id="rd-report-id" class="pill">#R-000</div></div>
+                        </div>
+                        <div class="report-top-right">
+                            <div class="report-type"><small>Type of Report</small><div id="rd-report-type" class="pill pill-green">Accident Report</div></div>
+                        </div>
+                    </div>
+                    <div class="modal-body">
+                        <div class="report-details-grid">
+                            <div class="label">Collector ID</div><div class="value" id="rd-collector-id">#C-024</div>
+                            <div class="label">Date and Time</div><div class="value" id="rd-date">20/10/2025, 5:45 PM</div>
+                            <div class="label" id="label-collection-id">Collection ID</div><div class="value" id="rd-collection-id">#CR-087</div>
+                            <div class="label" id="label-location">Location of Accident</div><div class="value" id="rd-location">3, Jalan SS18/12B, Petaling Jaya</div>
+                            <div class="label" id="label-accident-type">Type of Accident</div><div class="value" id="rd-accident-type">Minor Vehicle Damage</div>
+                            <div class="label" id="label-miss-reason">Reason for Missing Collection</div><div class="value" id="rd-miss-reason">Household Not Home</div>
+                            <div class="label" id="label-title">Report Title</div><div class="value" id="rd-title">Vehicle requires maintenance check</div>
+                            <div class="label" id="label-category">Report Category</div><div class="value" id="rd-category">Vehicle/Maintenance</div>
+                            <div class="label">Brief Description</div><div class="value" id="rd-description">I was hit by another car at the junction. No injuries.</div>
+                        </div>
+
+                        <div class="report-actions">
+                            <button class="btn btn-primary" id="report-mark-resolved">Mark as Resolved</button>
+                            <button class="btn btn-secondary" id="report-contact-collector">Contact Collector</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content" id="collector-content" style="display: none;">
+                <div class="page-header">
+                    <h2>Collector</h2>
+                    <div class="page-controls">
+                        <input type="search" id="collector-search" class="search-input" placeholder="Search something..">
+                        <div class="controls-right">
+                            <select id="collector-filter-select" class="small-select filter-dropdown">
+                                <option value="all">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                            <button class="btn" id="filter-sort-btn"><i class="fas fa-filter"></i> Filter & Sort</button>
+                            <button class="btn btn-primary" id="add-collector"><i class="fas fa-rotate-right" style="margin-right:8px"></i> Refresh</button>
+                            <button class="btn btn-primary" id="collector-export"><i class="fas fa-file-export" style="margin-right:8px"></i> Export XLSX</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="data-table collector-table">
+                        <thead>
+                            <tr>
+                                <th>Collector ID</th>
+                                <th>Collector Name</th>
+                                <th>Phone Number</th>
+                                <th>Email Address</th>
+                                <th>Date of Birth</th>
+                                <th>Vehicle Type</th>
+                                <th>Plate No.</th>
+                                <th>Preferred Area</th>
+                                <th>Availability</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="loading-row">
+                                <td colspan="11">Loading collectors…</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-footer">
+                    <div class="entries-info" id="collector-entries-info">Showing 0 to 0 of 0 entries</div>
+                    <div class="pagination" id="collector-pagination">
+                        <button class="page-btn" id="collector-prev-btn" disabled>Previous</button>
+                        <div class="page-numbers" id="collector-page-numbers"></div>
+                        <button class="page-btn" id="collector-next-btn">Next</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content" id="applicant-content" style="display: none;">
+                <div class="page-header">
+                    <h2>Applicant</h2>
+                    <div class="page-controls">
+                        <input type="search" id="applicant-search" class="search-input" placeholder="Search something..">
+                        <div class="controls-right">
+                            <select id="applicant-filter-select" class="small-select filter-dropdown">
+                                <option value="all">All Status</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                                <option value="pending">Pending</option>
+                            </select>
+                            <button class="btn" id="applicant-filter-sort"><i class="fas fa-filter"></i> Filter & Sort</button>
+                            <button class="btn btn-primary" id="applicant-add"><i class="fas fa-sync"></i> Refresh</button>
+                            <button class="btn btn-secondary" id="applicant-export"><i class="fas fa-file-export"></i> Export PDF</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="data-table applicant-table">
+                        <thead>
+                            <tr>
+                                <th>Loading...</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-footer">
+                    <div class="entries-info" id="applicant-entries-info">Showing 0 to 0 of 0 entries</div>
+                    <div class="pagination" id="applicant-pagination">
+                        <button class="page-btn" id="applicant-prev-btn" disabled>Previous</button>
+                        <div class="page-numbers" id="applicant-page-numbers"></div>
+                        <button class="page-btn" id="applicant-next-btn">Next</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content" id="household-content" style="display: none;">
+                <div class="page-header">
+                    <h2>Household</h2>
+                    <div class="page-controls">
+                        <input type="search" id="household-search" class="search-input" placeholder="Search something..">
+                        <div class="controls-right">
+                            <select id="household-filter-select" class="small-select filter-dropdown">
+                                <option value="all">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                            <button class="btn" id="household-filter-sort"><i class="fas fa-filter"></i> Filter & Sort</button>
+                            <button class="btn" id="household-refresh" aria-label="Refresh" title="Refresh">
+                                <i class="fas fa-sync" style="margin-right:8px"></i> Refresh
+                            </button>
+                            <button class="btn btn-secondary" id="household-export"><i class="fas fa-file-export"></i> Export PDF</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="data-table household-table">
+                        <thead>
+                            <tr>
+                                <th>Household ID</th>
+                                <th>Household Name</th>
+                                <th>Phone Number</th>
+                                <th>Email Address</th>
+                                <th>Gender</th>
+                                <th>Points</th>
+                                <th>Credit</th>
+                                <th>UCO Deposit</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#H-060</td>
+                                <td>Nur Liyana</td>
+                                <td>01377382772</td>
+                                <td>liyana@gmail.com</td>
+                                <td>Women</td>
+                                <td>20,630 pt</td>
+                                <td>RM 206.30</td>
+                                <td>86 kg</td>
+                                <td class="status active">Active</td>
+                                <td class="actions-col"><span class="action-group"><button type="button" class="danger-action household-toggle-status" aria-label="Deactivate #H-060">Deactivate <i class="fas fa-user-slash" aria-hidden="true"></i></button></span></td>
+                            </tr>
+                            <tr>
+                                <td>#H-059</td>
+                                <td>Aiman Rahman</td>
+                                <td>01973632662</td>
+                                <td>aiman@gmail.com</td>
+                                <td>Men</td>
+                                <td>8,310 pt</td>
+                                <td>RM 83.10</td>
+                                <td>15 kg</td>
+                                <td class="status active">Active</td>
+                                <td class="actions-col"><span class="action-group"><button type="button" class="danger-action household-toggle-status" aria-label="Deactivate #H-059">Deactivate <i class="fas fa-user-slash" aria-hidden="true"></i></button></span></td>
+                            </tr>
+                            <tr>
+                                <td>#H-058</td>
+                                <td>Chloe Lim</td>
+                                <td>01736356362</td>
+                                <td>chloe@gmail.com</td>
+                                <td>Women</td>
+                                <td>11,750 pt</td>
+                                <td>RM 117.50</td>
+                                <td>50 kg</td>
+                                <td class="status active">Active</td>
+                                <td class="actions-col"><span class="action-group"><button type="button" class="danger-action household-toggle-status" aria-label="Deactivate #H-058">Deactivate <i class="fas fa-user-slash" aria-hidden="true"></i></button></span></td>
+                            </tr>
+                            <tr>
+                                <td>#H-057</td>
+                                <td>Daniel Wong</td>
+                                <td>01435353535</td>
+                                <td>daniel@gmail.com</td>
+                                <td>Men</td>
+                                <td>10,010 pt</td>
+                                <td>RM 100.10</td>
+                                <td>48.6 kg</td>
+                                <td class="status active">Active</td>
+                                <td class="actions-col"><span class="action-group"><button type="button" class="danger-action household-toggle-status" aria-label="Deactivate #H-057">Deactivate <i class="fas fa-user-slash" aria-hidden="true"></i></button></span></td>
+                            </tr>
+                            <tr>
+                                <td>#H-056</td>
+                                <td>Farah Zulfikli</td>
+                                <td>01645627633</td>
+                                <td>farah@gmail.com</td>
+                                <td>Women</td>
+                                <td>3,938 pt</td>
+                                <td>RM 39.38</td>
+                                <td>12 kg</td>
+                                <td class="status active">Active</td>
+                                <td class="actions-col"><span class="action-group"><button type="button" class="danger-action household-toggle-status" aria-label="Deactivate #H-056">Deactivate <i class="fas fa-user-slash" aria-hidden="true"></i></button></span></td>
+                            </tr>
+                            <tr>
+                                <td>#H-055</td>
+                                <td>Amirul Hakim</td>
+                                <td>01535435354</td>
+                                <td>amirul@gmail.com</td>
+                                <td>Men</td>
+                                <td>7,292 pt</td>
+                                <td>RM 72.92</td>
+                                <td>35 kg</td>
+                                <td class="status active">Active</td>
+                                <td class="actions-col"><span class="action-group"><button type="button" class="danger-action household-toggle-status" aria-label="Deactivate #H-055">Deactivate <i class="fas fa-user-slash" aria-hidden="true"></i></button></span></td>
+                            </tr>
+                            <tr>
+                                <td>#H-054</td>
+                                <td>Jasmine Tan</td>
+                                <td>01635242532</td>
+                                <td>jasmine@gmail.com</td>
+                                <td>Women</td>
+                                <td>10,370 pt</td>
+                                <td>RM 103.70</td>
+                                <td>49 kg</td>
+                                <td class="status active">Active</td>
+                                <td class="actions-col"><span class="action-group"><button type="button" class="danger-action household-toggle-status" aria-label="Deactivate #H-054">Deactivate <i class="fas fa-user-slash" aria-hidden="true"></i></button></span></td>
+                            </tr>
+                            <tr>
+                                <td>#H-053</td>
+                                <td>Sofia Yin</td>
+                                <td>01543526536</td>
+                                <td>sofia@gmail.com</td>
+                                <td>Women</td>
+                                <td>10,210 pt</td>
+                                <td>RM 102.10</td>
+                                <td>48.5 kg</td>
+                                <td class="status active">Active</td>
+                                <td class="actions-col"><span class="action-group"><a href="#" class="danger-action">[Deactivate]</a></span></td>
+                            </tr>
+                            <tr>
+                                <td>#H-052</td>
+                                <td>Zayn Khal</td>
+                                <td>01545262563</td>
+                                <td>zayn@gmail.com</td>
+                                <td>Men</td>
+                                <td>9,993 pt</td>
+                                <td>RM 99.93</td>
+                                <td>50.1 kg</td>
+                                <td class="status inactive">Inactive</td>
+                                <td class="actions-col"><span class="action-group"><a href="#" class="success-action">[Reactivate]</a></span></td>
+                            </tr>
+                            <tr>
+                                <td>#H-051</td>
+                                <td>Yoseph Yong</td>
+                                <td>01635362762</td>
+                                <td>yoseph@gmail.com</td>
+                                <td>Men</td>
+                                <td>4,585 pt</td>
+                                <td>RM 45.85</td>
+                                <td>20 kg</td>
+                                <td class="status inactive">Inactive</td>
+                                <td class="actions-col"><span class="action-group"><a href="#" class="success-action">[Reactivate]</a></span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-footer">
+                    <div class="entries-info" id="household-entries-info">Showing 1 to 15 of 799 entries</div>
+                    <div class="pagination" id="household-pagination">
+                        <button class="page-btn" id="household-prev-btn" disabled>Previous</button>
+                        <div class="page-numbers" id="household-page-numbers"></div>
+                        <button class="page-btn" id="household-next-btn">Next</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content" id="reward-content" style="display: none;">
+                <div class="page-header">
+                    <h2>Reward Management</h2>
+                </div>
+
+                <div class="reward-tabs">
+                    <button class="tab-btn active" data-tab="rewards-tab" onclick="switchTab('rewards-tab')">
+                        <i class="fas fa-gift"></i> Rewards
+                    </button>
+                    <button class="tab-btn" data-tab="redemption-tab" onclick="switchTab('redemption-tab')">
+                        <i class="fas fa-history"></i> Redemption History
+                    </button>
+                </div>
+
+                <div id="rewards-tab" class="tab-content active">
+                    <div class="page-controls">
+                        <input type="search" id="reward-search" class="search-input" placeholder="Search by reward name or ID..">
+                        <div class="controls-right">
+                            <select id="reward-category-filter" class="filter-select">
+                                <option value="">All Categories</option>
+                                <option value="Food & Beverages">Food & Beverages</option>
+                                <option value="Shopping & eCommerce">Shopping & eCommerce</option>
+                            </select>
+                            <button class="btn" id="reward-filter-sort"><i class="fas fa-filter"></i> Filter & Sort</button>
+                            <button class="btn btn-primary" id="reward-refresh" aria-label="Refresh" title="Refresh"><i class="fas fa-sync" style="margin-right:8px"></i> Refresh</button>
+                            <button class="btn btn-primary" id="reward-export"><i class="fas fa-file-export" style="margin-right:8px"></i> Export PDF</button>
+                            <button class="btn btn-primary" id="reward-add-new"><i class="fas fa-plus"></i> Add New Reward</button>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="data-table reward-table" id="reward-table">
+                            <thead>
+                                <tr>
+                                    <th>Reward ID</th>
+                                    <th>Reward Name</th>
+                                    <th>Category</th>
+                                    <th>Merchant</th>
+                                    <th>Value (RM)</th>
+                                    <th>Points Required</th>
+                                    <th>Expiry Date</th>
+                                    <th>Admin ID</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reward-tbody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-footer">
+                        <div class="entries-info" id="reward-entries-info">Showing 0 to 0 of 0 entries</div>
+                        <div class="pagination" id="reward-pagination"></div>
+                    </div>
+                </div>
+
+                <div id="redemption-tab" class="tab-content">
+                    <div class="page-controls">
+                        <input type="search" id="redemption-search" class="search-input" placeholder="Search by redemption ID, promo code, or household ID..">
+                        <div class="controls-right">
+                            <select id="redemption-status-filter" class="filter-select">
+                                <option value="">All Status</option>
+                                <option value="Redeemed">Redeemed</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                            <button class="btn btn-secondary" id="redemption-export"><i class="fas fa-file-export"></i> Export PDF</button>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="data-table redemption-table" id="redemption-table">
+                            <thead>
+                                <tr>
+                                    <th>Redemption ID</th>
+                                    <th>Date & Time</th>
+                                    <th>Reward ID</th>
+                                    <th>Household ID</th>
+                                    <th>Promo Code</th>
+                                    <th>Points Deducted</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="redemption-tbody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-footer">
+                        <div class="entries-info" id="redemption-entries-info">Showing 0 to 0 of 0 entries</div>
+                        <div class="pagination" id="redemption-pagination"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content" id="report-content" style="display: none;">
+                <div class="page-header">
+                    <h2>Report</h2>
+                    <div class="page-controls">
+                        <input type="search" id="report-search" class="search-input" placeholder="Search something..">
+                        <div class="controls-right">
+                            <select id="report-filter-select" class="small-select filter-dropdown">
+                                <option value="all">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="reviewed">Reviewed</option>
+                            </select>
+                            <button class="btn" id="report-filter-sort"><i class="fas fa-filter"></i> Filter & Sort</button>
+                            <button class="btn" id="report-refresh" aria-label="Refresh" title="Refresh"><i class="fas fa-sync" style="margin-right:8px"></i> Refresh</button>
+                            <button class="btn btn-secondary" id="report-export"><i class="fas fa-file-export"></i> Export PDF</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="data-table report-table">
+                        <thead>
+                            <tr>
+                                <th>Report ID</th>
+                                <th>Collector ID</th>
+                                <th>Date and Time</th>
+                                <th>Report Type</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#R-008</td>
+                                <td>#C-024</td>
+                                <td>20/10/2025 5:45 PM</td>
+                                <td>Accident Report</td>
+                                <td class="status pending">Pending</td>
+                                <td class="actions-col"><span class="action-group"><button class="view-details view-action" aria-label="View details">View details</button></span></td>
+                            </tr>
+                            <tr>
+                                <td>#R-007</td>
+                                <td>#C-002</td>
+                                <td>20/10/2025 3:15 PM</td>
+                                <td>Collection Report</td>
+                                <td class="status pending">Pending</td>
+                                <td class="actions-col"><span class="action-group"><button class="view-details view-action" aria-label="View details">View details</button></span></td>
+                            </tr>
+                            <tr>
+                                <td>#R-006</td>
+                                <td>#C-010</td>
+                                <td>20/10/2025 1:42 PM</td>
+                                <td>Manual Report</td>
+                                <td class="status pending">Pending</td>
+                                <td class="actions-col"><span class="action-group"><button class="view-details view-action" aria-label="View details">View details</button></span></td>
+                            </tr>
+                            <tr>
+                                <td>#R-005</td>
+                                <td>#C-024</td>
+                                <td>18/10/2025 2:15 PM</td>
+                                <td>Collection Report</td>
+                                <td class="status reviewed">Reviewed</td>
+                                <td class="actions-col"><span class="action-group"><button class="view-details view-action btn-small" aria-label="View details">View details</button></span></td>
+                            </tr>
+                            <tr>
+                                <td>#R-004</td>
+                                <td>#C-018</td>
+                                <td>17/10/2025 2:07 PM</td>
+                                <td>Manual Report</td>
+                                <td class="status reviewed">Reviewed</td>
+                                <td class="actions-col"><span class="action-group"><button class="view-details view-action btn-small" aria-label="View details">View details</button></span></td>
+                            </tr>
+                            <tr>
+                                <td>#R-003</td>
+                                <td>#C-024</td>
+                                <td>16/10/2025 5:45 PM</td>
+                                <td>Accident Report</td>
+                                <td class="status reviewed">Reviewed</td>
+                                <td class="actions-col"><span class="action-group"><button class="view-details view-action btn-small" aria-label="View details">View details</button></span></td>
+                            </tr>
+                            <tr>
+                                <td>#R-002</td>
+                                <td>#C-017</td>
+                                <td>16/10/2025 2:12 PM</td>
+                                <td>Manual Report</td>
+                                <td class="status reviewed">Reviewed</td>
+                                <td class="actions-col"><span class="action-group"><button class="view-details view-action btn-small" aria-label="View details">View details</button></span></td>
+                            </tr>
+                            <tr>
+                                <td>#R-001</td>
+                                <td>#C-006</td>
+                                <td>15/10/2025 12:15 PM</td>
+                                <td>Manual Report</td>
+                                <td class="status reviewed">Reviewed</td>
+                                <td class="actions-col"><span class="action-group"><button class="view-details view-action btn-small" aria-label="View details">View details</button></span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-footer">
+                    <div class="entries-info">Showing 1 to 8 of 8 entries</div>
+                    <div class="pagination">
+                        <button class="page-btn">1</button>
+                        <button class="page-btn">2</button>
+                        <button class="page-btn next">Next</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content" id="ai-assist-content" style="display: none;">
+                <div class="ai-assist-wrap">
+                    <div class="ai-intro" id="ai-intro">
+                        <div class="ai-header">
+                            <h1><span class="hi">Hello,</span> <span class="ai-name">D-001</span></h1>
+                            <p class="ai-hero">How can I help you today?</p>
+                        </div>
+
+                        <section class="ai-suggestions">
+                            <h4>AI Suggestions</h4>
+                            <div class="suggestion-cards">
+                                <button class="ai-suggestion" type="button"><span>Generate tomorrow's route schedule</span><span class="card-icon">⤴</span></button>
+                                <button class="ai-suggestion" type="button"><span>Generate a new route for unassigned households in Subang area</span><span class="card-icon">🔀</span></button>
+                                <button class="ai-suggestion" type="button"><span>Optimize Route #R-100 for shorter travel distance</span><span class="card-icon">📉</span></button>
+                                <button class="ai-suggestion" type="button"><span>Identify delayed routes from today</span><span class="card-icon">⚠️</span></button>
+                            </div>
+                        </section>
+                    </div>
+                    <div class="ai-info">
+                        <div>
+                            <div class="ai-note">Your conversations may be reviewed by our team to help improve KolekBot's performance. Kindly avoid sharing any personal or sensitive information.</div>
+                            <div class="ai-links"><a href="#" id="how-it-works">How it works</a> • <a href="#" id="dismiss-info">Dismiss</a></div>
+                        </div>
+                    </div>
+
+                    <div class="ai-empty" id="ai-empty">
+                        <div class="ai-empty-badge">KolekBot</div>
+                        <h2>Ask about routes, collectors, rewards, or reports</h2>
+                        <p>Start a chat to see your conversation here.</p>
+                    </div>
+
+                    <div class="ai-chat-shell is-hidden" id="ai-chat-shell">
+                        <div id="ai-chat-log" class="ai-chat-log" role="log" aria-live="polite"></div>
+                    </div>
+                </div>
+
+                <div class="ai-prompt-row">
+                    <div class="ai-input-wrap">
+                        <input id="ai-prompt-input" class="ai-input" placeholder="Enter a prompt here" aria-label="AI prompt input">
+                        <button id="ai-attach" class="ai-attach" title="Attach"><i class="fas fa-image"></i></button>
+                        <!-- hidden file input used by attach -->
+                        <input id="ai-file-input" type="file" accept="image/*" style="display:none" />
+                        <span id="ai-upload-feedback" class="ai-upload-feedback" aria-live="polite"></span>
+                        <button id="ai-voice" class="ai-voice" title="Voice"><i class="fas fa-microphone"></i></button>
+                        <button id="ai-send" class="ai-send" title="Send"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+                <div class="ai-footer-note">KolekBot may display inaccurate info, including people, so double-check its responses.</div>
+            </div>
+
+            <div class="content" id="settings-content" style="display: none;">
+                <h2>Settings</h2>
+
+                <div class="settings-card-wrap">
+                    <div class="settings-main-card">
+                        <div class="settings-grid">
+                            <!-- General Settings -->
+                            <div class="settings-card big-card">
+                                <div class="card-row">
+                                    <div class="card-title">General Settings</div>
+                                    <div class="card-body list">
+                                        <div class="row-item">
+                                            <div class="label">System Language</div>
+                                            <select id="setting-language">
+                                                <option>English</option>
+                                                <option>Bahasa</option>
+                                                <option>中文</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="row-item">
+                                            <div class="label">Theme Mode</div>
+                                            <label class="switch"><input id="theme-toggle" type="checkbox"><span class="slider"></span></label>
+                                        </div>
+
+                                        <div class="row-item">
+                                            <div class="label">Date & Time Format</div>
+                                            <select id="setting-datetime">
+                                                <option>dd/mm/yyyy</option>
+                                                <option>mm/dd/yyyy</option>
+                                                <option>yyyy-mm-dd</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="row-item">
+                                            <div class="label">Default Region</div>
+                                            <select id="setting-region">
+                                                <option>Kuala Lumpur</option>
+                                                <option>Subang</option>
+                                                <option>Petaling</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Security & Access -->
+                            <div class="settings-card big-card">
+                                <div class="card-row">
+                                    <div class="card-title">Security & Access Control</div>
+                                    <div class="card-body list">
+                                        <div class="row-item">
+                                            <div class="label">Two-Factor Authentication</div>
+                                            <label class="toggle">
+                                                <input type="checkbox" id="setting-twofa">
+                                                <span class="toggle-switch"></span>
+                                            </label>
+                                        </div>
+                                        <div class="row-item">
+                                            <div class="label">Session Timeout Duration</div>
+                                            <select id="setting-session-timeout">
+                                                <option value="1">1 minute</option>
+                                                <option value="15">15 minutes</option>
+                                                <option value="30">30 minutes</option>
+                                                <option value="60">60 minutes</option>
+                                                <option value="none" selected>None</option>
+                                            </select>
+                                        </div>
+                                        <div class="list-link" id="reset-password-link" style="cursor: pointer;">Reset Password <span class="chev">›</span></div>
+                                        <div class="list-link" id="security-questions-link" style="cursor: pointer;">Security Questions Setup <span class="chev">›</span></div>
+                                        <div class="list-link" id="activity-log-link" style="cursor: pointer;">Activity Log <span class="chev">›</span></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Data & Report Management -->
+                            <div class="settings-card big-card">
+                                <div class="card-row">
+                                    <div class="card-title">Data & Report Managment</div>
+                                    <div class="card-body list">
+                                        <div class="row-item">
+                                            <div class="label">Report Format</div>
+                                            <select id="setting-report-format">
+                                                <option>PDF</option>
+                                                <option>CSV</option>
+                                                <option>XLSX</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="row-item">
+                                            <div class="label">Scheduled Reports</div>
+                                            <select id="setting-schedule">
+                                                <option>15 minutes</option>
+                                                <option selected>30 minutes</option>
+                                                <option>1 hour</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="row-item">
+                                            <div class="label">Include CO2 Metrics</div>
+                                            <label class="switch small"><input id="co2-toggle" type="checkbox" checked><span class="slider"></span></label>
+                                        </div>
+
+                                        <div class="row-item">
+                                            <div class="label">Custom Report Header</div>
+                                            <div class="row-control"><button id="custom-report-header-edit" class="btn btn-secondary btn-small">Edit</button>
+                                                <div id="custom-report-header-preview" style="display:inline-block;margin-left:12px;color:#6b7280;font-size:13px;vertical-align:middle"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Custom Report Header Modal -->
+                            <div class="modal" id="custom-report-header-modal" role="dialog" aria-modal="true" aria-label="Custom report header">
+                                <div class="modal-content" tabindex="-1">
+                                    <div class="modal-header">
+                                        <h2>Custom Report Header</h2>
+                                        <button class="modal-close" id="custom-report-header-close">&times;</button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row-item">
+                                            <div class="label">Header Title</div>
+                                            <input id="setting-report-header-title" type="text" placeholder="Kolek Report" />
+                                        </div>
+                                        <div class="row-item">
+                                            <div class="label">Subtitle</div>
+                                            <input id="setting-report-header-subtitle" type="text" placeholder="Monthly summary" />
+                                        </div>
+                                        <div class="row-item">
+                                            <div class="label">Logo (upload)</div>
+                                            <div style="display:flex;align-items:center;gap:8px;">
+                                                <input id="setting-report-header-logo-file" type="file" accept="image/*" />
+                                                <span id="setting-report-header-logo-name" style="color:var(--text-light);font-size:13px"></span>
+                                            </div>
+                                            <!-- Hidden field kept for backward compatibility; will contain data URL when an image is uploaded -->
+                                            <input id="setting-report-header-logo" type="hidden" />
+                                        </div>
+                                        <div class="row-item">
+                                            <div class="label">Preview</div>
+                                            <div id="custom-report-header-modal-preview" style="padding:12px;border:1px solid var(--border-color);border-radius:8px;background:var(--bg-light);">
+                                                <div id="preview-logo" style="height:40px;margin-bottom:8px;"></div>
+                                                <div id="preview-title" style="font-weight:700;font-size:16px;color:var(--text-dark);"></div>
+                                                <div id="preview-subtitle" style="font-size:13px;color:var(--text-light);"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button class="btn" id="setting-report-header-cancel">Cancel</button>
+                                        <button class="btn btn-primary" id="setting-report-header-save">Save</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Activity Log Modal -->
+                            <div class="modal" id="activity-log-modal" role="dialog" aria-modal="true" aria-label="Activity Log">
+                                <div class="modal-content" tabindex="-1" style="min-width: 800px; max-height: 90vh; overflow-y: auto;">
+                                    <div class="modal-header">
+                                        <h2>Admin Activity Log</h2>
+                                        <button class="modal-close" id="activity-log-close">&times;</button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div id="activity-log-filter" style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color);">
+                                            <div style="display: flex; gap: 15px; align-items: center;">
+                                                <label style="margin: 0;">
+                                                    <span style="font-weight: 600; margin-right: 8px;">Filter by Admin:</span>
+                                                    <select id="activity-log-admin-filter" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px;">
+                                                        <option value="">All Admins</option>
+                                                    </select>
+                                                </label>
+                                                <button id="activity-log-refresh-btn" class="btn btn-secondary btn-small">
+                                                    <i class="fas fa-rotate-right"></i> Refresh
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div id="activity-log-container" style="margin-top: 15px;">
+                                            <table style="width: 100%; border-collapse: collapse;">
+                                                <thead>
+                                                    <tr style="background: var(--bg-light); border-bottom: 2px solid var(--border-color);">
+                                                        <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--text-dark); width: 15%;">Admin</th>
+                                                        <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--text-dark); width: 15%;">Action</th>
+                                                        <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--text-dark); width: 15%;">Resource</th>
+                                                        <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--text-dark); width: 35%;">Details</th>
+                                                        <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--text-dark); width: 20%;">Timestamp</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="activity-log-table-body">
+                                                    <tr style="height: 40px;">
+                                                        <td colspan="5" style="text-align: center; color: var(--text-light); padding: 20px;">Loading activity log...</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div id="activity-log-empty" style="display: none; text-align: center; padding: 40px 20px; color: var(--text-light);">
+                                            <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;"></i>
+                                            <p>No activity records found</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Reset Password Modal -->
+                            <div class="modal" id="reset-password-modal" role="dialog" aria-modal="true" aria-label="Reset Password">
+                                <div class="modal-content" tabindex="-1" style="max-width: 450px;">
+                                    <div class="modal-header">
+                                        <h2>Reset Password</h2>
+                                        <button class="modal-close" id="reset-password-close">&times;</button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div id="reset-password-message" style="margin-bottom: 20px; display: none; padding: 12px; border-radius: 6px; font-size: 14px;"></div>
+                                        <div class="row-item">
+                                            <label class="label">Current Password</label>
+                                            <div style="position: relative; margin-top: 6px;">
+                                                <input id="reset-current-password" type="password" placeholder="Enter your current password" style="width: 100%; padding: 10px 38px 10px 10px; border: 1px solid var(--border-color); border-radius: 6px;" />
+                                                <span id="reset-current-password-toggle" class="password-toggle" title="Show/Hide password" style="cursor: pointer; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 18px;">👁️</span>
+                                            </div>
+                                        </div>
+                                        <div class="row-item" style="margin-top: 16px;">
+                                            <label class="label">New Password</label>
+                                            <div style="position: relative; margin-top: 6px;">
+                                                <input id="reset-new-password" type="password" placeholder="Enter new password (min 12 characters)" style="width: 100%; padding: 10px 38px 10px 10px; border: 1px solid var(--border-color); border-radius: 6px;" />
+                                                <span id="reset-new-password-toggle" class="password-toggle" title="Show/Hide password" style="cursor: pointer; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 18px;">👁️</span>
+                                            </div>
+                                        </div>
+                                        <div class="row-item" style="margin-top: 16px;">
+                                            <label class="label">Confirm New Password</label>
+                                            <div style="position: relative; margin-top: 6px;">
+                                                <input id="reset-confirm-password" type="password" placeholder="Confirm new password" style="width: 100%; padding: 10px 38px 10px 10px; border: 1px solid var(--border-color); border-radius: 6px;" />
+                                                <span id="reset-confirm-password-toggle" class="password-toggle" title="Show/Hide password" style="cursor: pointer; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 18px;">👁️</span>
+                                            </div>
+                                        </div>
+                                        <div style="margin-top: 8px; font-size: 13px; color: var(--text-light);">
+                                            Password must be at least 12 characters long and contain uppercase, lowercase, number, and special character.
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; padding: 16px 20px; border-top: 1px solid var(--border-color);">
+                                        <button class="btn btn-secondary" id="reset-password-cancel">Cancel</button>
+                                        <button class="btn btn-primary" id="reset-password-submit">Update Password</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Security Questions Modal -->
+                            <div class="modal" id="security-questions-modal" role="dialog" aria-modal="true" aria-label="Security Questions Setup">
+                                <div class="modal-content" tabindex="-1" style="max-width: 550px;">
+                                    <div class="modal-header">
+                                        <h2>Security Questions Setup</h2>
+                                        <button class="modal-close" id="security-questions-close">&times;</button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div id="security-questions-message" style="margin-bottom: 20px; display: none; padding: 12px; border-radius: 6px; font-size: 14px;"></div>
+                                        <p style="font-size: 13px; color: var(--text-light); margin-bottom: 16px;">
+                                            Set up security questions to help recover your account if you forget your password. Your answers are case-insensitive.
+                                        </p>
+                                        
+                                        <!-- Question 1 -->
+                                        <div class="row-item">
+                                            <label class="label">Security Question 1</label>
+                                            <select id="security-question-1" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; margin-top: 6px; margin-bottom: 8px;">
+                                                <option value="">Select a question</option>
+                                                <option value="school">What was the name of your first school?</option>
+                                                <option value="teacher">What is your favorite teacher's name?</option>
+                                                <option value="dream">What is your dream job as a child?</option>
+                                            </select>
+                                            <input id="security-answer-1" type="text" placeholder="Your answer" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;" />
+                                        </div>
+
+                                        <!-- Question 2 -->
+                                        <div class="row-item" style="margin-top: 16px;">
+                                            <label class="label">Security Question 2</label>
+                                            <select id="security-question-2" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; margin-top: 6px; margin-bottom: 8px;">
+                                                <option value="">Select a question</option>
+                                                <option value="school">What was the name of your first school?</option>
+                                                <option value="teacher">What is your favorite teacher's name?</option>
+                                                <option value="dream">What is your dream job as a child?</option>
+                                            </select>
+                                            <input id="security-answer-2" type="text" placeholder="Your answer" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;" />
+                                        </div>
+
+                                        <!-- Question 3 -->
+                                        <div class="row-item" style="margin-top: 16px;">
+                                            <label class="label">Security Question 3</label>
+                                            <select id="security-question-3" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; margin-top: 6px; margin-bottom: 8px;">
+                                                <option value="">Select a question</option>
+                                                <option value="school">What was the name of your first school?</option>
+                                                <option value="teacher">What is your favorite teacher's name?</option>
+                                                <option value="dream">What is your dream job as a child?</option>
+                                            </select>
+                                            <input id="security-answer-3" type="text" placeholder="Your answer" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;" />
+                                        </div>
+
+                                        <div style="margin-top: 12px; font-size: 12px; color: #d9534f; font-weight: 500;">
+                                            ⚠️ Make sure each answer is unique and only you would know them.
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; padding: 16px 20px; border-top: 1px solid var(--border-color);">
+                                        <button class="btn btn-secondary" id="security-questions-cancel">Cancel</button>
+                                        <button class="btn btn-primary" id="security-questions-submit">Save Security Questions</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Route & Station Preference -->
+                            <div class="settings-card big-card">
+                                <div class="card-row">
+                                    <div class="card-title">Route & Station Preference</div>
+                                    <div class="card-body list">
+                                        <div class="row-item">
+                                            <div class="label">Default Fill Level Alert</div>
+                                            <div class="row-control">80%</div>
+                                        </div>
+
+                                        <div class="row-item" id="route-optimization-mode-row" style="cursor: pointer;">
+                                            <div class="label">Route Optimization Mode</div>
+                                            <div class="row-control" id="route-optimization-mode-value">Distance Priority ›</div>
+                                        </div>
+
+                                        <div class="row-item">
+                                            <div class="label">Auto Route Approval</div>
+                                            <label class="switch small"><input id="route-auto" type="checkbox" checked><span class="slider"></span></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-cta">
+                            <button id="logout-action" class="btn-ghost">Log out</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile / Account Information -->
+            <div class="content" id="profile-content" style="display:none;">
+                <h2>Account Information</h2>
+
+                <div class="profile-panel">
+                    <div class="profile-card">
+                        <div class="profile-top">
+                            <div class="avatar-wrap">
+                                <img id="profile-avatar" src="https://via.placeholder.com/140" alt="Profile avatar" class="profile-avatar">
+                                <button id="profile-avatar-edit" class="avatar-edit" title="Change profile picture"><i class="fas fa-camera"></i></button>
+                                <input id="profile-file-input" type="file" accept="image/*" style="display:none" />
+                            </div>
+                            <div class="profile-info">
+                                <div class="form-row two-col">
+                                    <div class="form-group">
+                                        <label>Admin ID</label>
+                                        <input id="profile-admin-id" class="input input-disabled" type="text" value="#AD-001" disabled>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Phone Number <span class="verified">Verified</span></label>
+                                        <div class="phone-row">
+                                            <select id="profile-phone-code" class="small-select">
+                                                <option>+60</option>
+                                                <option>+62</option>
+                                                <option>+65</option>
+                                            </select>
+                                            <input id="profile-phone" class="input" type="text" value="19 122 3637">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-row two-col">
+                                    <div class="form-group">
+                                        <label>Full Name</label>
+                                        <input id="profile-fullname" class="input" type="text" value="Cassie Bloom">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Email Address <span class="verified">Verified</span></label>
+                                        <input id="profile-email" class="input" type="email" value="cassiebloom@kolek.com">
+                                    </div>
+                                </div>
+
+                                <div class="form-row single">
+                                    <div class="form-group">
+                                        <label>Gender</label>
+                                        <select id="profile-gender" class="small-select">
+                                            <option value="">Select</option>
+                                            <option value="Woman">Woman</option>
+                                            <option value="Man">Man</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button id="profile-save-btn" class="btn-ghost">Save Changes</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Reward Modals -->
+    <div id="view-reward-modal" class="reward-modal">
+        <div class="reward-modal-content">
+            <div class="reward-modal-header">
+                <h2>Reward Details</h2>
+                <button class="reward-modal-close" onclick="closeViewModal()">&times;</button>
+            </div>
+            <div class="reward-modal-body">
+                <div class="reward-detail-grid">
+                    <div class="detail-item">
+                        <label>Reward ID</label>
+                        <p id="view-reward-id" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Reward Name</label>
+                        <p id="view-reward-name" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Category</label>
+                        <p id="view-reward-category" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Merchant</label>
+                        <p id="view-reward-merchant" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Value (RM)</label>
+                        <p id="view-reward-value" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Points Required</label>
+                        <p id="view-reward-points" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Expiry Date</label>
+                        <p id="view-reward-expiry" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Admin ID</label>
+                        <p id="view-reward-admin" class="detail-value">-</p>
+                    </div>
+                </div>
+            </div>
+            <div class="reward-modal-footer">
+                <button class="btn btn-secondary" onclick="closeViewModal()">Close</button>
+                <button class="btn btn-primary" onclick="openEditModalFromView()">Edit</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-reward-modal" class="reward-modal">
+        <div class="reward-modal-content">
+            <div class="reward-modal-header">
+                <h2>Edit Reward</h2>
+                <button class="reward-modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="reward-modal-body">
+                <form id="edit-reward-form" class="reward-form">
+                    <div class="form-group">
+                        <label for="edit-reward-id">Reward ID *</label>
+                        <input type="text" id="edit-reward-id" class="form-input" placeholder="e.g., R-001" required readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-reward-name">Reward Name *</label>
+                        <input type="text" id="edit-reward-name" class="form-input" placeholder="e.g., Store RM10 Voucher" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-reward-category">Category *</label>
+                            <select id="edit-reward-category" class="form-input" required>
+                                <option value="">Select Category</option>
+                                <option value="Food & Beverages">Food & Beverages</option>
+                                <option value="Shopping & eCommerce">Shopping & eCommerce</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-reward-merchant">Merchant *</label>
+                            <input type="text" id="edit-reward-merchant" class="form-input" placeholder="e.g., Store Name" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-reward-value">Value (RM) *</label>
+                            <input type="number" id="edit-reward-value" class="form-input" step="0.01" min="0" placeholder="e.g., 10.00" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-reward-points">Points Required *</label>
+                            <input type="number" id="edit-reward-points" class="form-input" min="0" placeholder="e.g., 250" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-reward-expiry">Expiry Date *</label>
+                            <input type="date" id="edit-reward-expiry" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-reward-admin">Admin ID *</label>
+                            <input type="text" id="edit-reward-admin" class="form-input" placeholder="e.g., D-001" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="reward-modal-footer">
+                <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveRewardChanges()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-redemption-modal" class="reward-modal">
+        <div class="reward-modal-content">
+            <div class="reward-modal-header">
+                <h2>Redemption Details</h2>
+                <button class="reward-modal-close" onclick="closeRedemptionModal()">&times;</button>
+            </div>
+            <div class="reward-modal-body">
+                <div class="reward-detail-grid">
+                    <div class="detail-item">
+                        <label>Redemption ID</label>
+                        <p id="view-redemption-id" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Status</label>
+                        <p id="view-redemption-status" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Date & Time</label>
+                        <p id="view-redemption-datetime" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Reward ID</label>
+                        <p id="view-redemption-reward-id" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Household ID</label>
+                        <p id="view-redemption-household-id" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Points Deducted</label>
+                        <p id="view-redemption-points" class="detail-value">-</p>
+                    </div>
+                    <div class="detail-item full-width">
+                        <label>Promo Code</label>
+                        <p id="view-redemption-promo" class="detail-value">-</p>
+                    </div>
+                </div>
+            </div>
+            <div class="reward-modal-footer">
+                <button class="btn btn-secondary" onclick="closeRedemptionModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Collection Date Picker Modal -->
+    <div id="collection-date-picker-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Select Date Range</h3>
+                <button class="modal-close" id="collection-date-picker-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label for="collection-date-start" style="display: block; margin-bottom: 8px; font-weight: 500;">Start Date</label>
+                    <input type="date" id="collection-date-start" class="form-input">
+                </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label for="collection-date-end" style="display: block; margin-bottom: 8px; font-weight: 500;">End Date</label>
+                    <input type="date" id="collection-date-end" class="form-input">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="collection-date-picker-clear">Clear</button>
+                <button class="btn btn-secondary" id="collection-date-picker-cancel">Cancel</button>
+                <button class="btn btn-primary" id="collection-date-picker-apply">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="add-reward-modal" class="reward-modal">
+        <div class="reward-modal-content">
+            <div class="reward-modal-header">
+                <h2>Add New Reward</h2>
+                <button class="reward-modal-close" onclick="closeAddRewardModal()">&times;</button>
+            </div>
+            <div class="reward-modal-body">
+                <form id="add-reward-form" class="reward-form">
+                    <div class="form-group">
+                        <label for="new-reward-id">Reward ID *</label>
+                        <input type="text" id="new-reward-id" class="form-input" placeholder="e.g., R-051" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-reward-name">Reward Name *</label>
+                        <input type="text" id="new-reward-name" class="form-input" placeholder="e.g., Store RM10 Voucher" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="new-reward-category">Category *</label>
+                            <select id="new-reward-category" class="form-input" required>
+                                <option value="">Select Category</option>
+                                <option value="Food & Beverages">Food & Beverages</option>
+                                <option value="Shopping & eCommerce">Shopping & eCommerce</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-reward-merchant">Merchant *</label>
+                            <input type="text" id="new-reward-merchant" class="form-input" placeholder="e.g., Store Name" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="new-reward-value">Value (RM) *</label>
+                            <input type="number" id="new-reward-value" class="form-input" step="0.01" min="0" placeholder="e.g., 10.00" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-reward-points">Points Required *</label>
+                            <input type="number" id="new-reward-points" class="form-input" min="0" placeholder="e.g., 250" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="new-reward-expiry">Expiry Date *</label>
+                            <input type="date" id="new-reward-expiry" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-reward-admin">Admin ID *</label>
+                            <input type="text" id="new-reward-admin" class="form-input" placeholder="e.g., D-001" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="reward-modal-footer">
+                <button class="btn btn-secondary" onclick="closeAddRewardModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveNewReward()">Add Reward</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <!-- Export libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="apiKey.js"></script>
+    <script src="main.js"></script>
+    <script src="databaseLoader.js"></script>
+    <script src="reportLoader.js"></script>
+    <script src="reward.js"></script>
+</body>
+</html>

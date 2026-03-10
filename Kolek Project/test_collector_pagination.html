@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Collector Pagination</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Collector Pagination Test</h1>
+    
+    <div class="section">
+        <h2>1. Check HTML Elements</h2>
+        <div id="html-check"></div>
+    </div>
+    
+    <div class="section">
+        <h2>2. Load Data</h2>
+        <button onclick="testLoad()">Load Collector Data</button>
+        <div id="load-result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>3. Pagination State</h2>
+        <div id="pagination-state"></div>
+    </div>
+    
+    <script src="apiKey.js"></script>
+    <script src="main.js"></script>
+    <script>
+        // Test 1: Check if HTML elements exist
+        document.getElementById('html-check').innerHTML = `
+            <p>collector-prev-btn: ${document.getElementById('collector-prev-btn') ? '✓ Found' : '✗ Not found'}</p>
+            <p>collector-next-btn: ${document.getElementById('collector-next-btn') ? '✓ Found' : '✗ Not found'}</p>
+            <p>collector-page-numbers: ${document.getElementById('collector-page-numbers') ? '✓ Found' : '✗ Not found'}</p>
+            <p>collector-entries-info: ${document.getElementById('collector-entries-info') ? '✓ Found' : '✗ Not found'}</p>
+        `;
+        
+        // Test 2: Load data
+        function testLoad() {
+            loadCollectorFromCSV('Fnl-Collector.csv').then(data => {
+                document.getElementById('load-result').innerHTML = `
+                    <p><strong>Data loaded:</strong> ${data.length} records</p>
+                    <p><strong>collectorFullData:</strong> ${collectorFullData.length} records</p>
+                    <p><strong>collectorCurrentPage:</strong> ${collectorCurrentPage}</p>
+                    <p><strong>collectorRecordsPerPage:</strong> ${collectorRecordsPerPage}</p>
+                    <p><strong>Expected pages:</strong> ${Math.ceil(collectorFullData.length / collectorRecordsPerPage)}</p>
+                `;
+                
+                updatePaginationState();
+            });
+        }
+        
+        // Test 3: Check pagination state
+        function updatePaginationState() {
+            const prevBtn = document.getElementById('collector-prev-btn');
+            const nextBtn = document.getElementById('collector-next-btn');
+            const pageNumbers = document.getElementById('collector-page-numbers');
+            const entriesInfo = document.getElementById('collector-entries-info');
+            
+            document.getElementById('pagination-state').innerHTML = `
+                <p><strong>Previous button:</strong> ${prevBtn ? (prevBtn.disabled ? 'Disabled' : 'Enabled') : 'Not found'}</p>
+                <p><strong>Next button:</strong> ${nextBtn ? (nextBtn.disabled ? 'Disabled' : 'Enabled') : 'Not found'}</p>
+                <p><strong>Page numbers HTML:</strong> <pre>${pageNumbers ? pageNumbers.innerHTML : 'Not found'}</pre></p>
+                <p><strong>Entries info:</strong> ${entriesInfo ? entriesInfo.textContent : 'Not found'}</p>
+            `;
+        }
+        
+        // Auto-load on page load
+        setTimeout(() => {
+            testLoad();
+        }, 500);
+    </script>
+</body>
+</html>

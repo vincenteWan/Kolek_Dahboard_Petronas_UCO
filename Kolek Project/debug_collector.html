@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head><title>Debug Collector Data</title></head>
+<body>
+<h1>Collector Data Debug</h1>
+<div id="output"></div>
+<script src="apiKey.js"></script>
+<script src="main.js"></script>
+<script>
+// Test loading collector data
+loadCollectorFromCSV('Fnl-Collector.csv').then(data => {
+    document.getElementById('output').innerHTML = `
+        <p><strong>Data loaded:</strong> ${data.length} records</p>
+        <p><strong>collectorFullData length:</strong> ${collectorFullData.length}</p>
+        <p><strong>Expected pages:</strong> ${Math.ceil(collectorFullData.length / 15)}</p>
+        <h3>First 3 records:</h3>
+        <pre>${JSON.stringify(data.slice(0, 3), null, 2)}</pre>
+        <h3>Last 3 records:</h3>
+        <pre>${JSON.stringify(data.slice(-3), null, 2)}</pre>
+    `;
+});
+</script>
+</body>
+</html>
