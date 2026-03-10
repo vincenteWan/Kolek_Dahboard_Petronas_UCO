@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KOLEK Dashboard Demo</title>
+  <style>
+    :root {
+      --ink: #1f2937;
+      --slate: #334155;
+      --muted: #64748b;
+      --paper: #f8fafc;
+      --card: #ffffff;
+      --brand: #0f766e;
+      --brand-soft: #ccfbf1;
+      --accent: #f59e0b;
+      --ring: rgba(15, 118, 110, 0.22);
+      --line: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(900px 400px at 90% -10%, #e0f2fe 10%, transparent 60%),
+        radial-gradient(700px 300px at -10% 0%, #fef3c7 5%, transparent 60%),
+        var(--paper);
+      min-height: 100vh;
+    }
+
+    .container {
+      width: min(980px, 92vw);
+      margin: 0 auto;
+      padding: 40px 0 60px;
+    }
+
+    .hero {
+      background: linear-gradient(120deg, #0f766e, #115e59);
+      color: #ecfeff;
+      border-radius: 18px;
+      padding: 28px;
+      box-shadow: 0 20px 40px rgba(15, 118, 110, 0.24);
+      animation: rise 480ms ease-out;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 12px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #052e2b;
+      background: var(--brand-soft);
+      border-radius: 999px;
+      padding: 6px 10px;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.6rem, 4.4vw, 2.5rem);
+      line-height: 1.15;
+      letter-spacing: 0.3px;
+    }
+
+    .lead {
+      margin: 14px 0 0;
+      color: #ccfbf1;
+      line-height: 1.6;
+      max-width: 68ch;
+    }
+
+    .grid {
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.05);
+      animation: rise 650ms ease-out;
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 1rem;
+      color: var(--slate);
+    }
+
+    .card p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.55;
+    }
+
+    .actions {
+      margin-top: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      padding: 11px 14px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.92rem;
+      border: 1px solid transparent;
+      transition: transform 120ms ease, box-shadow 120ms ease;
+    }
+
+    .btn-primary {
+      color: white;
+      background: var(--brand);
+      box-shadow: 0 10px 22px var(--ring);
+    }
+
+    .btn-secondary {
+      color: var(--slate);
+      background: white;
+      border-color: var(--line);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .terminal {
+      margin-top: 26px;
+      background: #0b1220;
+      color: #d1fae5;
+      border-radius: 14px;
+      padding: 16px;
+      overflow-x: auto;
+      border: 1px solid #1e293b;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .terminal code {
+      font-family: Menlo, Monaco, "Courier New", monospace;
+      color: #d1fae5;
+    }
+
+    .note {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    @keyframes rise {
+      from { transform: translateY(8px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @media (max-width: 640px) {
+      .container { padding-top: 24px; }
+      .hero { padding: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="hero">
+      <div class="badge">KOLEK UCO Platform</div>
+      <h1>Repository Demo Hub</h1>
+      <p class="lead">
+        This page is a lightweight demo landing page for the KOLEK Dashboard repository.
+        It is designed to be hosted with GitHub Pages so anyone can preview the project quickly.
+      </p>
+    </section>
+
+    <section class="grid" aria-label="Feature preview cards">
+      <article class="card">
+        <h3>Dashboard and Reports</h3>
+        <p>Admin dashboard interface for monitoring UCO collection activity and report summaries.</p>
+      </article>
+      <article class="card">
+        <h3>Collector and Household Data</h3>
+        <p>CRUD APIs manage collector assignments, household records, and collection flows.</p>
+      </article>
+      <article class="card">
+        <h3>Authentication + 2FA</h3>
+        <p>Login flow supports secure password checks and email-based 2FA verification.</p>
+      </article>
+      <article class="card">
+        <h3>Database-backed Backend</h3>
+        <p>Node + Express + MySQL service powering live data endpoints for the dashboard UI.</p>
+      </article>
+    </section>
+
+    <div class="actions">
+      <a class="btn btn-primary" href="../Kolek%20Project/README.md">Open Project README</a>
+      <a class="btn btn-secondary" href="../Kolek%20Project/index.html">Open Frontend Entry File</a>
+    </div>
+
+    <section class="terminal" aria-label="Run locally">
+      <code>
+# Run the real app locally (backend + DB)<br/>
+cd "Kolek Project"<br/>
+npm install<br/>
+npm start<br/>
+# then open http://localhost:3001
+      </code>
+    </section>
+
+    <p class="note">
+      Note: GitHub Pages hosts static files only. For full live data behavior, run the backend locally.
+    </p>
+  </main>
+</body>
+</html>

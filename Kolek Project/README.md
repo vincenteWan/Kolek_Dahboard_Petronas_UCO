@@ -1,5 +1,21 @@
 # Kolek Dashboard API Sharing
 
+## Demo in Repository (GitHub Pages)
+
+This repository now includes a static demo landing page at `docs/index.html`.
+
+After you push to `main`, GitHub Actions deploys it automatically via:
+- `.github/workflows/deploy-demo-pages.yml`
+
+Enable GitHub Pages once in repository settings:
+1) Open `Settings` -> `Pages`
+2) Under `Build and deployment`, set `Source` to `GitHub Actions`
+
+Your demo URL will be:
+`https://vincenteWan.github.io/Kolek_Dahboard_Petronas_UCO/`
+
+Note: GitHub Pages is static hosting only. Full backend features still require local Node + MySQL.
+
 ## Quick start
 
 1) Set env vars (copy `.env.example` to `.env` and fill in values).
